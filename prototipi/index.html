@@ -1,0 +1,761 @@
+<title>Banco di Prova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+  /* Palette: bianco maiolica, blu cobalto, ocra */
+  :root{
+    --bg:#EDF1EF; --surface:#FFFFFF; --ink:#1B2629; --muted:#56676A;
+    --line:#CBD6D4; --accent:#1F5F8B; --accent-ink:#FFFFFF; --ocra:#B97A14;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#101719; --surface:#182225; --ink:#E3ECEA; --muted:#93A5A7;
+      --line:#2A393C; --accent:#79B1DD; --accent-ink:#0E1A20; --ocra:#E6B04F;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#101719; --surface:#182225; --ink:#E3ECEA; --muted:#93A5A7;
+    --line:#2A393C; --accent:#79B1DD; --accent-ink:#0E1A20; --ocra:#E6B04F;
+  }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:16px; line-height:1.5;
+    padding-inline:16px; padding-block:24px 48px;
+  }
+  .wrap{max-width:960px; margin:0 auto; display:grid; gap:20px}
+  h1{
+    font-family:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;
+    font-weight:800; font-size:clamp(30px,6vw,48px); line-height:1.02;
+    letter-spacing:-.02em; margin:0; text-wrap:balance;
+  }
+  .lead{margin:8px 0 0; color:var(--muted); max-width:62ch}
+  .tabs{display:flex; gap:8px; flex-wrap:wrap}
+  .tab{
+    font:inherit; font-weight:700; padding:10px 18px; border-radius:999px;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer;
+  }
+  .tab[aria-selected="true"]{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+  .tab:focus-visible{outline:3px solid var(--ocra); outline-offset:2px}
+  [hidden]{display:none !important}
+  .panel{display:grid; gap:18px}
+  .stage{
+    position:relative; width:100%; max-width:100%; aspect-ratio:8/5;
+    border-radius:14px; overflow:hidden; background:#1c2426;
+    touch-action:none; user-select:none; -webkit-user-select:none;
+    box-shadow:0 1px 0 var(--line), 0 12px 30px -18px rgba(0,0,0,.45);
+  }
+  .stage canvas{width:100%; height:100%; display:block; cursor:grab}
+  .info{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px 28px}
+  .info h2{
+    font-family:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;
+    font-size:14px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 4px;
+  }
+  .info p,.info ul{margin:0; max-width:62ch}
+  .info ul{padding-left:18px}
+  kbd{
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px;
+    border:1px solid var(--line); border-bottom-width:2px; border-radius:5px;
+    padding:0 5px; background:var(--surface);
+  }
+  .note{color:var(--muted); font-size:14px; margin:0}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Banco di Prova</h1>
+    <p class="lead">Tre prototipi da giocare per capire quale ti diverte di più. Grafica provvisoria, meccanica vera. Funzionano col mouse e col dito.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Prototipi">
+    <button class="tab" role="tab" id="tab-bocce" aria-controls="p-bocce" aria-selected="true">Bocce</button>
+    <button class="tab" role="tab" id="tab-carretti" aria-controls="p-carretti" aria-selected="false">Carretti</button>
+    <button class="tab" role="tab" id="tab-nonna" aria-controls="p-nonna" aria-selected="false">Cucina della nonna</button>
+  </nav>
+
+  <!-- 1. BOCCE -->
+  <section class="panel" id="p-bocce" role="tabpanel" aria-labelledby="tab-bocce">
+    <div class="stage"><canvas id="cv-bocce" aria-label="Campo da bocce"></canvas></div>
+    <div class="info">
+      <div>
+        <h2>Come si gioca</h2>
+        <p>Trascina all'indietro e lascia andare, come una fionda: più tiri, più forte parte. Tocca sempre alla squadra più lontana dal pallino. Si gioca in due sullo stesso telefono.</p>
+      </div>
+      <div>
+        <h2>Cosa valutare</h2>
+        <p>Il lancio ti dà soddisfazione? Gli urti tra bocce sono divertenti da vedere? Ti viene voglia di fare "ancora una mano"?</p>
+      </div>
+      <div>
+        <h2>Nella versione vera</h2>
+        <ul><li>Sfida contro il computer</li><li>Campi diversi: sabbia, erba, spiaggia</li><li>Bocciata al volo con effetto</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. CARRETTI -->
+  <section class="panel" id="p-carretti" role="tabpanel" aria-labelledby="tab-carretti" hidden>
+    <div class="stage"><canvas id="cv-carretti" aria-label="Discesa col carretto"></canvas></div>
+    <div class="info">
+      <div>
+        <h2>Come si gioca</h2>
+        <p>Il carretto scende da solo. Tieni premuta la metà destra dello schermo per sporgerti in avanti, la sinistra per sbilanciarti indietro. Da tastiera: <kbd>←</kbd> <kbd>→</kbd>. Se il pilota batte la testa è finita.</p>
+      </div>
+      <div>
+        <h2>Cosa valutare</h2>
+        <p>Il carretto "balla" in modo buffo e fluido? Gli incidenti ti fanno ridere? Riprovi subito per battere il record?</p>
+      </div>
+      <div>
+        <h2>Nella versione vera</h2>
+        <ul><li>Carretti da costruire e migliorare</li><li>Borghi diversi da sbloccare</li><li>Replay al rallentatore degli incidenti</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. CUCINA DELLA NONNA -->
+  <section class="panel" id="p-nonna" role="tabpanel" aria-labelledby="tab-nonna" hidden>
+    <div class="stage"><canvas id="cv-nonna" aria-label="Cucina da riordinare"></canvas></div>
+    <div class="info">
+      <div>
+        <h2>Come si gioca</h2>
+        <p>Trascina ogni oggetto dal bancone alla sua sagoma sugli scaffali. Attenzione ai barattoli: si somigliano.</p>
+      </div>
+      <div>
+        <h2>Cosa valutare</h2>
+        <p>È rilassante? L'oggetto che "scatta" al suo posto dà soddisfazione? Giocheresti un livello al giorno?</p>
+      </div>
+      <div>
+        <h2>Nella versione vera</h2>
+        <ul><li>Una cucina per ogni regione</li><li>Cassetti e credenze da aprire</li><li>Ricordi e piccole storie da scoprire</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <p class="note">Suoni attivi dopo il primo tocco. Il record dei carretti resta salvato su questo browser.</p>
+</div>
+
+<script>
+/* ============ Utilità comuni ============ */
+const W = 800, H = 500; // spazio logico di ogni gioco: tutto è disegnato in 800x500 e poi scalato
+
+// Adatta il canvas alla dimensione reale (nitido anche su schermi ad alta densità)
+function makeCanvas(cv){
+  const ctx = cv.getContext('2d');
+  function fit(){
+    const r = cv.getBoundingClientRect();
+    if (!r.width) return;
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(r.width * d);
+    cv.height = Math.round(r.height * d);
+  }
+  fit();
+  return { ctx, fit, begin(){ ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0); } };
+}
+// Converte la posizione del puntatore in coordinate logiche 800x500
+function localPt(e, cv){
+  const r = cv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+}
+// Suoni sintetizzati (niente file audio): partono solo dopo un'interazione
+let audioCtx = null;
+function beep(freq, dur, type = 'triangle', vol = 0.12){
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + dur);
+  } catch (e) { /* audio non disponibile: si gioca in silenzio */ }
+}
+// localStorage protetto (può essere bloccato)
+function load(k, def){ try { const v = localStorage.getItem(k); return v === null ? def : JSON.parse(v); } catch (e) { return def; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+// Etichetta scura semitrasparente usata negli HUD
+function pill(ctx, x, y, w, h){ ctx.fillStyle = 'rgba(20,24,26,.62)'; roundRect(ctx, x, y, w, h, h / 2); ctx.fill(); }
+// Riquadro centrale per messaggi di fine partita
+function banner(ctx, title, sub){
+  ctx.fillStyle = 'rgba(15,20,22,.55)'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fbf8f1'; roundRect(ctx, W / 2 - 230, H / 2 - 70, 460, 140, 18); ctx.fill();
+  ctx.textAlign = 'center'; ctx.fillStyle = '#1b2629';
+  ctx.font = '800 34px "Bricolage Grotesque", system-ui, sans-serif'; ctx.fillText(title, W / 2, H / 2 - 8);
+  ctx.fillStyle = '#56676a'; ctx.font = '400 18px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillText(sub, W / 2, H / 2 + 30);
+  ctx.textAlign = 'left';
+}
+
+/* ============ 1. BOCCE ============
+   Vista dall'alto. Fisica: attrito costante + urti elastici tra cerchi. */
+function Bocce(cv){
+  const C = makeCanvas(cv), ctx = C.ctx;
+  const FR = 260;                                // decelerazione per attrito (px/s²)
+  const CT = { x0: 34, y0: 34, x1: 766, y1: 466 }; // bordi del campo
+  const LINE = 150, SPAWN = { x: 88, y: 250 };    // linea di tiro e punto di lancio
+  const TEAMS = [
+    { name: 'Rossi', col: '#c93a2f', hi: '#f39a8b', lo: '#5e120c' },
+    { name: 'Blu',   col: '#2e63b3', hi: '#9dbff0', lo: '#10285a' }
+  ];
+  let balls = [], phase = 'roll', turn = 0, left = [4, 4], drag = null, total = [0, 0], result = null, endT = 0;
+
+  // Sabbia pre-disegnata una volta sola
+  const sand = document.createElement('canvas'); sand.width = W; sand.height = H;
+  { const s = sand.getContext('2d'); s.fillStyle = '#d8c18c'; s.fillRect(0, 0, W, H);
+    for (let i = 0; i < 6000; i++){ s.fillStyle = Math.random() < .5 ? 'rgba(110,80,35,.13)' : 'rgba(255,255,255,.16)';
+      s.fillRect(Math.random() * W, Math.random() * H, 1.7, 1.7); } }
+
+  function newHand(){
+    left = [4, 4]; result = null;
+    // Il pallino viene lanciato in automatico verso un punto casuale
+    const p = { x: SPAWN.x, y: SPAWN.y, vx: 0, vy: 0, r: 7, m: .35, team: -1, ang: 0 };
+    const tx = 520 + Math.random() * 180, ty = 130 + Math.random() * 240;
+    const d = Math.hypot(tx - p.x, ty - p.y), v0 = Math.sqrt(2 * FR * d); // velocità per fermarsi esattamente lì
+    p.vx = (tx - p.x) / d * v0; p.vy = (ty - p.y) / d * v0;
+    balls = [p]; turn = Math.random() < .5 ? 0 : 1; phase = 'roll';
+  }
+  function spawn(){ balls.push({ x: SPAWN.x, y: SPAWN.y, vx: 0, vy: 0, r: 15, m: 1, team: turn, ready: true, ang: 0 }); phase = 'aim'; }
+  const distP = b => Math.hypot(b.x - balls[0].x, b.y - balls[0].y);
+  function closest(t){ let m = Infinity; for (const b of balls) if (b.team === t && !b.ready) m = Math.min(m, distP(b)); return m; }
+
+  // Regola vera delle bocce: tira la squadra più lontana dal pallino
+  function afterStop(){
+    if (left[0] + left[1] === 0) return score();
+    const c0 = closest(0), c1 = closest(1);
+    let t = (c0 === Infinity && c1 === Infinity) ? turn : (c0 > c1 ? 0 : 1);
+    if (left[t] === 0) t = 1 - t;
+    turn = t; spawn();
+  }
+  function score(){
+    const c = [closest(0), closest(1)], w = c[0] < c[1] ? 0 : 1;
+    const pts = balls.filter(b => b.team === w && distP(b) < c[1 - w]).length;
+    total[w] += pts; result = { w, pts }; phase = 'end'; endT = 0;
+    beep(523, .15); setTimeout(() => beep(784, .25), 140);
+  }
+
+  function step(dt){
+    const live = balls.filter(b => !b.ready);
+    for (const b of live){
+      const sp = Math.hypot(b.vx, b.vy);
+      if (sp > 0){ const ns = Math.max(0, sp - FR * dt * (b.team < 0 ? 1.15 : 1)); b.vx *= ns / sp; b.vy *= ns / sp; }
+      b.x += b.vx * dt; b.y += b.vy * dt; b.ang += Math.hypot(b.vx, b.vy) * dt / b.r;
+      // sponde di legno: rimbalzo smorzato
+      if (b.x - b.r < CT.x0){ b.x = CT.x0 + b.r; b.vx = -b.vx * .55; }
+      if (b.x + b.r > CT.x1){ b.x = CT.x1 - b.r; b.vx = -b.vx * .55; }
+      if (b.y - b.r < CT.y0){ b.y = CT.y0 + b.r; b.vy = -b.vy * .55; }
+      if (b.y + b.r > CT.y1){ b.y = CT.y1 - b.r; b.vy = -b.vy * .55; }
+    }
+    // urti tra bocce (impulso con coefficiente di restituzione 0.86)
+    for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++){
+      const a = live[i], b = live[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), min = a.r + b.r;
+      if (d > 0 && d < min){
+        const nx = dx / d, ny = dy / d, ov = min - d, tm = a.m + b.m;
+        a.x -= nx * ov * b.m / tm; a.y -= ny * ov * b.m / tm; b.x += nx * ov * a.m / tm; b.y += ny * ov * a.m / tm;
+        const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+        if (rv < 0){
+          const j2 = -(1 + .86) * rv / (1 / a.m + 1 / b.m);
+          a.vx -= j2 / a.m * nx; a.vy -= j2 / a.m * ny; b.vx += j2 / b.m * nx; b.vy += j2 / b.m * ny;
+          if (-rv > 30) beep(1100 + Math.random() * 400, .05, 'triangle', Math.min(.16, -rv / 2500)); // "clack"
+        }
+      }
+    }
+  }
+
+  function update(dt){
+    for (let i = 0; i < 4; i++) step(dt / 4);
+    if (phase === 'roll' && balls.every(b => b.ready || Math.hypot(b.vx, b.vy) < 3)){
+      balls.forEach(b => { b.vx = 0; b.vy = 0; }); afterStop();
+    }
+    if (phase === 'end') endT += dt;
+  }
+
+  function drawBall(b, x, y){
+    ctx.fillStyle = 'rgba(40,25,10,.28)'; ctx.beginPath(); ctx.ellipse(x + 3, y + 4, b.r, b.r * .9, 0, 0, 7); ctx.fill();
+    const T = b.team < 0 ? { col: '#f2d23c', hi: '#fff6c2', lo: '#8a6d05' } : TEAMS[b.team];
+    const g = ctx.createRadialGradient(x - b.r * .35, y - b.r * .4, b.r * .1, x, y, b.r);
+    g.addColorStop(0, T.hi); g.addColorStop(.45, T.col); g.addColorStop(1, T.lo);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, b.r, 0, 7); ctx.fill();
+    // riga che "scorre" sulla boccia per dare l'idea del rotolamento
+    if (b.team >= 0){
+      const dir = Math.atan2(b.vy, b.vx) || 0, off = Math.sin(b.ang) * b.r * .6;
+      ctx.save(); ctx.beginPath(); ctx.arc(x, y, b.r, 0, 7); ctx.clip();
+      ctx.translate(x + Math.cos(dir) * off, y + Math.sin(dir) * off); ctx.rotate(dir + Math.PI / 2);
+      ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-b.r, 0); ctx.lineTo(b.r, 0); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function draw(){
+    C.begin();
+    ctx.fillStyle = '#6b4428'; ctx.fillRect(0, 0, W, H);                  // sponde
+    ctx.fillStyle = '#80543a'; ctx.fillRect(8, 8, W - 16, H - 16);
+    ctx.drawImage(sand, CT.x0, CT.y0, CT.x1 - CT.x0, CT.y1 - CT.y0, CT.x0, CT.y0, CT.x1 - CT.x0, CT.y1 - CT.y0);
+    ctx.setLineDash([8, 8]); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(LINE, CT.y0); ctx.lineTo(LINE, CT.y1); ctx.stroke(); ctx.setLineDash([]);
+
+    // a fine mano: linee dal pallino alle bocce che fanno punto
+    if (phase === 'end' && result){
+      const lim = closest(1 - result.w);
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2;
+      for (const b of balls) if (b.team === result.w && distP(b) < lim){ ctx.beginPath(); ctx.moveTo(balls[0].x, balls[0].y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+    }
+    for (const b of balls){
+      if (b.ready){
+        // effetto fionda: la boccia arretra mentre carichi il tiro
+        let ox = 0, oy = 0;
+        if (drag){ const dx = drag.sx - drag.x, dy = drag.sy - drag.y, L = Math.hypot(dx, dy) || 1, k = Math.min(L, 220) / 220 * 14; ox = -dx / L * k; oy = -dy / L * k; }
+        drawBall(b, b.x + ox, b.y + oy);
+      } else drawBall(b, b.x, b.y);
+    }
+    // freccia di mira + barra della forza
+    if (drag && phase === 'aim'){
+      const b = balls[balls.length - 1], dx = drag.sx - drag.x, dy = drag.sy - drag.y, L = Math.min(Math.hypot(dx, dy), 220);
+      if (L > 12){
+        const a = Math.atan2(dy, dx), len = 30 + L * .55;
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(a);
+        ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(len, 0); ctx.moveTo(len - 12, -9); ctx.lineTo(len, 0); ctx.lineTo(len - 12, 9); ctx.stroke();
+        ctx.restore();
+        pill(ctx, 20, H - 46, 180, 26); ctx.fillStyle = TEAMS[b.team].col; roundRect(ctx, 24, H - 42, 172 * L / 220, 18, 9); ctx.fill();
+      }
+    }
+    // HUD: turno e bocce rimaste
+    pill(ctx, 16, 14, 300, 34);
+    ctx.font = '700 17px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillStyle = '#fff';
+    const label = phase === 'end' ? 'Mano finita' : phase === 'aim' ? 'Tocca ai ' + TEAMS[turn].name : 'Rotola…';
+    ctx.fillText(label, 30, 37);
+    for (let t = 0; t < 2; t++) for (let i = 0; i < left[t]; i++){ ctx.fillStyle = TEAMS[t].col; ctx.beginPath(); ctx.arc(200 + i * 12 + t * 56, 31, 5, 0, 7); ctx.fill(); }
+    pill(ctx, W - 176, 14, 160, 34); ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+    ctx.fillText('Rossi ' + total[0] + ' – ' + total[1] + ' Blu', W - 96, 37); ctx.textAlign = 'left';
+    if (phase === 'aim' && !drag){
+      ctx.fillStyle = 'rgba(40,25,10,.75)'; ctx.font = '700 15px "Atkinson Hyperlegible", system-ui, sans-serif';
+      ctx.fillText('Trascina indietro e lascia', 44, 292);
+    }
+    if (phase === 'end' && result && endT > .6){
+      const t = TEAMS[result.w];
+      banner(ctx, t.name + ': ' + result.pts + (result.pts === 1 ? ' punto' : ' punti'), 'Tocca per la prossima mano');
+    }
+  }
+
+  cv.addEventListener('pointerdown', e => {
+    if (phase === 'end' && endT > .6){ newHand(); return; }
+    if (phase !== 'aim') return;
+    const p = localPt(e, cv); drag = { sx: p.x, sy: p.y, x: p.x, y: p.y };
+    cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointermove', e => { if (drag){ const p = localPt(e, cv); drag.x = p.x; drag.y = p.y; } });
+  const release = () => {
+    if (!drag) return;
+    const dx = drag.sx - drag.x, dy = drag.sy - drag.y, D = Math.hypot(dx, dy), L = Math.min(D, 220); drag = null;
+    if (L < 12 || phase !== 'aim') return;       // tiro troppo debole: annullato
+    const b = balls[balls.length - 1];
+    b.vx = dx / D * L * 3.2; b.vy = dy / D * L * 3.2; b.ready = false; left[b.team]--; phase = 'roll';
+    beep(160, .09, 'sine', .1);
+  };
+  cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', () => { drag = null; });
+
+  newHand();
+  return { update, draw, fit: C.fit };
+}
+
+/* ============ 2. CARRETTI ============
+   Fisica Verlet: 4 punti (2 ruote, sedile, testa) uniti da vincoli di distanza.
+   È questo che rende i movimenti fluidi senza animare nulla a mano. */
+function Carretti(cv){
+  const C = makeCanvas(cv), ctx = C.ctx;
+  const G = 1100, TORQ = 16, SUB = 2, ITER = 8;
+  let P, K, A, B, S, D, crashed, crashT, cam, dist, startX, started, best = load('carretti-best', 0), newBest = false;
+  const input = { l: false, r: false };
+
+  // Il pendio: discesa costante + dossi che crescono man mano che vai avanti
+  function ground(x){
+    const a = Math.min(1, Math.max(0, (x - 150) / 300)) * (1 + Math.max(0, x) / 5000);
+    return 260 + .2 * x + a * (40 * Math.sin(x / 150) + 16 * Math.sin(x / 47 + 2));
+  }
+  const mk = (x, y, r) => ({ x, y, px: x, py: y, r });
+  function reset(){
+    const x0 = 120, gy = ground(x0);
+    A = mk(x0, gy - 15, 15); B = mk(x0 + 64, ground(x0 + 64) - 15, 15);
+    S = mk(x0 + 30, gy - 42, 6); D = mk(x0 + 22, gy - 92, 11);
+    P = [A, B, S, D];
+    K = [[A, B], [A, S], [B, S], [S, D], [A, D], [B, D]].map(([p, q]) => ({ p, q, len: Math.hypot(p.x - q.x, p.y - q.y), k: 1 }));
+    crashed = false; crashT = 0; started = false; newBest = false; dist = 0; startX = A.x;
+    cam = { x: x0 - 260, y: gy - 280 };
+  }
+
+  // Collisione punto-terreno: spinge fuori lungo la normale e applica attrito
+  function collide(p, fr){
+    const gy = ground(p.x), s = (ground(p.x + 1) - ground(p.x - 1)) / 2, L = Math.hypot(1, s);
+    const nx = s / L, ny = -1 / L, d = (gy - p.y) / L;
+    if (d >= p.r) return false;
+    const push = p.r - d; p.x += nx * push; p.y += ny * push;
+    let vx = p.x - p.px, vy = p.y - p.py;
+    const vn = vx * nx + vy * ny;
+    if (vn < 0){ vx -= nx * vn * 1.1; vy -= ny * vn * 1.1; }
+    const tx = -ny, ty = nx, vt = vx * tx + vy * ty;
+    vx -= tx * vt * fr; vy -= ty * vt * fr;
+    p.px = p.x - vx; p.py = p.y - vy;
+    return true;
+  }
+
+  function crash(){
+    crashed = true; crashT = 0;
+    // la testa si "stacca": il pilota diventa un pupazzo di pezza
+    K[4].k = 0; K[5].k = 0; K[3].k = .5;
+    if (dist > best){ best = dist; newBest = true; save('carretti-best', best); }
+    beep(110, .3, 'sawtooth', .12); beep(70, .4, 'sine', .15);
+  }
+
+  function update(dt){
+    if (crashed) crashT += dt;
+    if (!started) return;
+    const h = dt / SUB;
+    for (let s = 0; s < SUB; s++){
+      for (const p of P){
+        const vx = (p.x - p.px) * .9995, vy = (p.y - p.py) * .9995;
+        p.px = p.x; p.py = p.y; p.x += vx; p.y += vy + G * h * h;
+      }
+      // sporgersi = coppia di rotazione attorno al baricentro
+      if (!crashed && (input.l || input.r)){
+        const dir = input.r ? 1 : -1, cx = (A.x + B.x + S.x + D.x) / 4, cy = (A.y + B.y + S.y + D.y) / 4, k = dir * TORQ * h * h;
+        for (const p of P){ const rx = p.x - cx, ry = p.y - cy; p.x += -ry * k; p.y += rx * k; }
+      }
+      for (let i = 0; i < ITER; i++){
+        for (const c of K){
+          if (!c.k) continue;
+          const dx = c.q.x - c.p.x, dy = c.q.y - c.p.y, d = Math.hypot(dx, dy) || 1, f = (d - c.len) / d * c.k * .5;
+          c.p.x += dx * f; c.p.y += dy * f; c.q.x -= dx * f; c.q.y -= dy * f;
+        }
+        collide(A, .002); collide(B, .002);
+        const hitS = collide(S, .15), hitD = collide(D, .35);
+        if (!crashed && (hitS || hitD)) crash();
+      }
+    }
+    if (!crashed) dist = Math.max(dist, (A.x - startX) / 25);
+    // telecamera morbida che guarda un po' avanti
+    const cx = (A.x + B.x) / 2, cy = (A.y + B.y) / 2, vx = A.x - A.px;
+    cam.x += (cx - 260 + vx * 18 - cam.x) * .1; cam.y += (cy - 290 - cam.y) * .1;
+  }
+
+  const hash = i => { const s = Math.sin(i * 127.1) * 43758.5453; return s - Math.floor(s); };
+  const HOUSES = ['#e3b47d', '#d98c5f', '#ebd29f', '#cf7f5c', '#e9c38a'];
+
+  function draw(){
+    C.begin();
+    const sky = ctx.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, '#8cc6e0'); sky.addColorStop(1, '#f4ddb0');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+    // colline lontane (parallasse lento)
+    ctx.fillStyle = '#9db88f'; ctx.beginPath(); ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 10){ const wx = x + cam.x * .15; ctx.lineTo(x, 250 - cam.y * .05 + 30 * Math.sin(wx / 120) + 15 * Math.sin(wx / 47)); }
+    ctx.lineTo(W, H); ctx.fill();
+    // case del borgo (parallasse medio)
+    const px = cam.x * .4, i0 = Math.floor(px / 70) - 1, baseY = 330 - cam.y * .12;
+    for (let i = i0; i < i0 + 14; i++){
+      const x = i * 70 - px, hh = 60 + hash(i) * 70, w = 58 + hash(i + 9) * 10;
+      ctx.fillStyle = HOUSES[Math.floor(hash(i + 3) * HOUSES.length)]; ctx.fillRect(x, baseY - hh, w, hh + 200);
+      ctx.fillStyle = '#9c4a32'; ctx.beginPath(); ctx.moveTo(x - 4, baseY - hh); ctx.lineTo(x + w / 2, baseY - hh - 18); ctx.lineTo(x + w + 4, baseY - hh); ctx.fill();
+      ctx.fillStyle = '#4b5d63'; for (let r = 0; r < 2; r++) ctx.fillRect(x + 12 + r * 22, baseY - hh + 18, 10, 16);
+    }
+    // terreno (lastricato)
+    ctx.save(); ctx.translate(-cam.x, -cam.y);
+    ctx.fillStyle = '#8b7b69'; ctx.beginPath(); ctx.moveTo(cam.x, cam.y + H + 50);
+    for (let x = cam.x - 10; x <= cam.x + W + 10; x += 8) ctx.lineTo(x, ground(x));
+    ctx.lineTo(cam.x + W + 10, cam.y + H + 50); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#5a4b3d'; ctx.lineWidth = 5; ctx.beginPath();
+    for (let x = cam.x - 10; x <= cam.x + W + 10; x += 8) ctx.lineTo(x, ground(x));
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(60,48,38,.35)';
+    for (let x = Math.floor(cam.x / 26) * 26; x < cam.x + W; x += 26){ ctx.beginPath(); ctx.ellipse(x + 8, ground(x + 8) + 14, 9, 4, 0, 0, 7); ctx.fill(); }
+    // cartelli ogni 50 metri
+    for (let m = 50 * Math.floor(((cam.x - startX) / 25) / 50); m < ((cam.x + W - startX) / 25) + 50; m += 50){
+      if (m <= 0) continue;
+      const x = startX + m * 25, y = ground(x);
+      ctx.fillStyle = '#5a4b3d'; ctx.fillRect(x - 2, y - 60, 4, 60);
+      ctx.fillStyle = m <= best && best > 0 ? '#f2d23c' : '#fbf8f1'; ctx.fillRect(x - 24, y - 78, 48, 22);
+      ctx.fillStyle = '#1b2629'; ctx.font = '700 14px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(m + ' m', x, y - 62); ctx.textAlign = 'left';
+    }
+    // carretto
+    ctx.lineCap = 'round';
+    ctx.fillStyle = 'rgba(168,112,58,.55)'; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(S.x, S.y); ctx.lineTo(B.x, B.y); ctx.fill();
+    ctx.strokeStyle = '#8b5a2b'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(A.x, A.y - 4); ctx.lineTo(B.x, B.y - 4); ctx.stroke();
+    for (const w of [A, B]){
+      ctx.fillStyle = '#2b2118'; ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, 7); ctx.fill();
+      ctx.fillStyle = '#c9a26b'; ctx.beginPath(); ctx.arc(w.x, w.y, w.r - 4, 0, 7); ctx.fill();
+      const ang = w.x / w.r; ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 2.5;
+      for (let k = 0; k < 3; k++){ const a = ang + k * Math.PI / 3; ctx.beginPath(); ctx.moveTo(w.x - Math.cos(a) * (w.r - 4), w.y - Math.sin(a) * (w.r - 4)); ctx.lineTo(w.x + Math.cos(a) * (w.r - 4), w.y + Math.sin(a) * (w.r - 4)); ctx.stroke(); }
+    }
+    // pilota
+    const mx = (S.x + D.x) / 2, my = (S.y + D.y) / 2;
+    ctx.strokeStyle = '#2c4f7c'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(S.x, S.y); ctx.lineTo(D.x, D.y); ctx.stroke();
+    ctx.strokeStyle = '#f0c9a0'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(crashed ? mx + 18 : B.x - 6, crashed ? my - 22 : B.y - 16); ctx.stroke();
+    ctx.fillStyle = '#f0c9a0'; ctx.beginPath(); ctx.arc(D.x, D.y, D.r, 0, 7); ctx.fill();
+    const hd = Math.atan2(D.y - S.y, D.x - S.x);
+    ctx.fillStyle = '#c93a2f'; ctx.beginPath(); ctx.arc(D.x, D.y, D.r + 1, hd - Math.PI / 2, hd + Math.PI / 2); ctx.fill();
+    ctx.restore();
+
+    // HUD
+    ctx.font = '800 30px "Bricolage Grotesque", system-ui, sans-serif';
+    pill(ctx, 16, 14, 230, 44); ctx.fillStyle = '#fff'; ctx.fillText(Math.floor(dist) + ' m', 32, 46);
+    ctx.font = '400 15px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillStyle = '#d7e2e0'; ctx.fillText('Record ' + Math.floor(best) + ' m', 130, 42);
+    if (!started){
+      pill(ctx, W / 2 - 250, H - 64, 500, 40); ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+      ctx.font = '700 17px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillText('Tieni premuto a destra o a sinistra per partire', W / 2, H - 38); ctx.textAlign = 'left';
+    }
+    if (crashed && crashT > .8) banner(ctx, (newBest ? 'Nuovo record! ' : 'Botto! ') + Math.floor(dist) + ' m', 'Tocca per riprovare');
+  }
+
+  // Controlli: metà sinistra / destra dello schermo, oppure frecce
+  cv.addEventListener('pointerdown', e => {
+    if (crashed){ if (crashT > .8) reset(); return; }
+    started = true; const p = localPt(e, cv);
+    input.l = p.x < W / 2; input.r = !input.l; cv.setPointerCapture(e.pointerId);
+  });
+  const up = () => { input.l = input.r = false; };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  function key(e, down){
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+      e.preventDefault();
+      if (down && crashed){ if (crashT > .8) reset(); return; }
+      if (down) started = true;
+      if (e.key === 'ArrowLeft') input.l = down; else input.r = down;
+    }
+  }
+
+  reset();
+  return { update, draw, fit: C.fit, key };
+}
+
+/* ============ 3. CUCINA DELLA NONNA ============
+   Drag & drop con molle: gli oggetti oscillano mentre li trascini
+   e rimbalzano quando scattano al loro posto. */
+function Nonna(cv){
+  const C = makeCanvas(cv), ctx = C.ctx;
+
+  // Ogni oggetto si disegna con la base al centro in (0,0) e cresce verso l'alto
+  const DEFS = [
+    { id: 'olio', w: 30, h: 96, draw(c){
+        c.fillStyle = 'rgba(182,165,48,.9)'; roundRect(c, -15, -70, 30, 70, 7); c.fill();
+        c.fillRect(-6, -90, 12, 22); c.fillStyle = '#8a5a2b'; c.fillRect(-7, -96, 14, 8);
+        c.fillStyle = '#f4ecd2'; c.fillRect(-15, -48, 30, 20); c.fillStyle = '#6d7a2e'; c.fillRect(-9, -42, 18, 3); c.fillRect(-9, -36, 12, 3); } },
+    { id: 'sugo', w: 42, h: 66, draw(c){
+        c.fillStyle = '#b8322a'; roundRect(c, -21, -56, 42, 56, 8); c.fill();
+        c.fillStyle = '#c9a227'; roundRect(c, -19, -66, 38, 12, 3); c.fill();
+        c.fillStyle = '#f4ecd2'; c.fillRect(-21, -38, 42, 18); c.fillStyle = '#b8322a'; c.fillRect(-12, -32, 24, 3); } },
+    { id: 'capperi', w: 54, h: 40, draw(c){
+        c.fillStyle = '#6e7d3a'; roundRect(c, -27, -32, 54, 32, 8); c.fill();
+        c.fillStyle = '#c9a227'; roundRect(c, -25, -40, 50, 10, 3); c.fill();
+        c.fillStyle = '#f4ecd2'; c.fillRect(-27, -22, 54, 12); } },
+    { id: 'moka', w: 50, h: 68, draw(c){
+        c.fillStyle = '#b3b9bd'; c.beginPath(); c.moveTo(-20, 0); c.lineTo(20, 0); c.lineTo(12, -28); c.lineTo(-12, -28); c.fill();
+        c.fillStyle = '#9aa1a6'; c.fillRect(-10, -32, 20, 6);
+        c.fillStyle = '#c4cacd'; c.beginPath(); c.moveTo(-12, -32); c.lineTo(12, -32); c.lineTo(18, -60); c.lineTo(-18, -60); c.fill();
+        c.fillStyle = '#26221f'; c.fillRect(-4, -68, 8, 8); c.lineWidth = 6; c.strokeStyle = '#26221f';
+        c.beginPath(); c.moveTo(16, -54); c.lineTo(28, -50); c.lineTo(22, -34); c.stroke();
+        c.fillStyle = '#9aa1a6'; c.beginPath(); c.moveTo(-18, -60); c.lineTo(-25, -56); c.lineTo(-16, -52); c.fill(); } },
+    { id: 'pentola', w: 110, h: 54, draw(c){
+        c.fillStyle = '#8d98a1'; roundRect(c, -45, -44, 90, 44, 8); c.fill();
+        c.fillStyle = '#75818b'; c.fillRect(-48, -46, 96, 6); c.fillStyle = '#26221f';
+        c.fillRect(-55, -38, 12, 6); c.fillRect(43, -38, 12, 6); roundRect(c, -8, -54, 16, 8, 3); c.fill();
+        c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(-36, -38, 8, 30); } },
+    { id: 'scolapasta', w: 88, h: 46, draw(c){
+        c.fillStyle = '#d24a3a'; c.beginPath(); c.moveTo(-40, -40); c.lineTo(40, -40); c.quadraticCurveTo(36, -4, 0, -6); c.quadraticCurveTo(-36, -4, -40, -40); c.fill();
+        c.fillRect(-44, -44, 88, 6); c.fillRect(-18, -8, 8, 8); c.fillRect(10, -8, 8, 8);
+        c.fillStyle = 'rgba(60,15,10,.55)';
+        for (let y = -32; y < -12; y += 9) for (let x = -28 + (y % 2 ? 4 : 0); x <= 28; x += 10) if (Math.abs(x) < 34 - (y + 32) * .6){ c.beginPath(); c.arc(x, y, 2, 0, 7); c.fill(); } } },
+    { id: 'tazzina', w: 52, h: 32, draw(c){
+        c.fillStyle = '#f7f4ee'; c.fillRect(-24, -5, 48, 5);
+        c.beginPath(); c.moveTo(-16, -30); c.lineTo(16, -30); c.quadraticCurveTo(15, -6, 0, -6); c.quadraticCurveTo(-15, -6, -16, -30); c.fill();
+        c.lineWidth = 4; c.strokeStyle = '#f7f4ee'; c.beginPath(); c.arc(18, -21, 6, -1.3, 1.3); c.stroke();
+        c.fillStyle = '#2f6aa3'; c.fillRect(-15, -26, 30, 3); } }
+  ];
+  // Posizioni delle sagome sugli scaffali (base dell'oggetto)
+  const SLOTS = { olio: [170, 175], sugo: [260, 175], capperi: [350, 175], moka: [455, 175], tazzina: [610, 175], pentola: [255, 325], scolapasta: [470, 325] };
+
+  // Pre-disegno: sprite a colori + sagoma scura di ogni oggetto
+  const PAD = 12, RES = 2;
+  for (const d of DEFS){
+    const cw = (d.w + PAD * 2) * RES, ch = (d.h + PAD * 2) * RES;
+    const s = document.createElement('canvas'); s.width = cw; s.height = ch;
+    const c = s.getContext('2d'); c.scale(RES, RES); c.translate(d.w / 2 + PAD, d.h + PAD); d.draw(c);
+    const sil = document.createElement('canvas'); sil.width = cw; sil.height = ch;
+    const c2 = sil.getContext('2d'); c2.drawImage(s, 0, 0); c2.globalCompositeOperation = 'source-in';
+    c2.fillStyle = 'rgba(46,56,70,.3)'; c2.fillRect(0, 0, cw, ch);
+    d.sprite = s; d.sil = sil;
+  }
+
+  // Sfondo: piastrelle di maiolica, scaffali, bancone
+  const bg = document.createElement('canvas'); bg.width = W * 2; bg.height = H * 2;
+  { const c = bg.getContext('2d'); c.scale(2, 2);
+    c.fillStyle = '#f1efe7'; c.fillRect(0, 0, W, H);
+    for (let y = 0; y < 400; y += 50) for (let x = 0; x < W; x += 50){
+      c.strokeStyle = 'rgba(47,106,163,.18)'; c.lineWidth = 1; c.strokeRect(x + .5, y + .5, 50, 50);
+      c.fillStyle = 'rgba(47,106,163,.22)';
+      for (let k = 0; k < 4; k++){ c.beginPath(); c.ellipse(x + 25 + Math.cos(k * Math.PI / 2) * 9, y + 25 + Math.sin(k * Math.PI / 2) * 9, 6, 3.5, k * Math.PI / 2, 0, 7); c.fill(); }
+      c.fillStyle = 'rgba(185,122,20,.35)'; c.beginPath(); c.arc(x + 25, y + 25, 3.5, 0, 7); c.fill();
+      c.fillStyle = 'rgba(47,106,163,.15)'; for (const [cx, cy] of [[x, y], [x + 50, y], [x, y + 50], [x + 50, y + 50]]){ c.beginPath(); c.arc(cx, cy, 6, 0, 7); c.fill(); }
+    }
+    for (const y of [175, 325]){
+      c.fillStyle = '#9a6a3f'; c.fillRect(100, y, 600, 14); c.fillStyle = '#7b5130'; c.fillRect(100, y + 14, 600, 4);
+      c.fillStyle = '#6b4428'; for (const x of [130, 660]){ c.beginPath(); c.moveTo(x, y + 18); c.lineTo(x + 10, y + 18); c.lineTo(x + 4, y + 44); c.fill(); }
+    }
+    c.fillStyle = '#b9895c'; c.fillRect(0, 400, W, 100); c.fillStyle = '#8b5d38'; c.fillRect(0, 400, W, 8);
+    c.fillStyle = 'rgba(0,0,0,.06)'; for (let x = 0; x < W; x += 60) c.fillRect(x, 408, 2, 92);
+  }
+
+  let items, dragItem = null, off = { x: 0, y: 0 }, last = { x: 0, y: 0 }, parts = [], time = 0, done = false, doneT = 0, toast = null;
+
+  function reset(){
+    const order = DEFS.slice().sort(() => Math.random() - .5);
+    items = order.map((d, i) => {
+      const x = 70 + i * (660 / (DEFS.length - 1)), y = 470;
+      return { d, x, y, vx: 0, vy: 0, tx: x, ty: y, home: { x, y }, rot: 0, rv: 0, sc: 1, sv: 0, placed: false };
+    });
+    time = 0; done = false; doneT = 0; parts = []; toast = null;
+  }
+  function puff(x, y, col){ for (let i = 0; i < 14; i++){ const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * 140; parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, life: 1, col }); } }
+
+  function update(dt){
+    if (!done) time += dt; else doneT += dt;
+    for (const it of items){
+      if (it === dragItem){
+        // mentre trascini l'oggetto si inclina in base alla velocità
+        const target = Math.max(-.5, Math.min(.5, it.vx * .0025));
+        it.rv += ((target - it.rot) * 160 - it.rv * 14) * dt; it.rot += it.rv * dt;
+      } else {
+        // molla verso la destinazione (effetto "elastico")
+        it.vx += ((it.tx - it.x) * 140 - it.vx * 16) * dt; it.vy += ((it.ty - it.y) * 140 - it.vy * 16) * dt;
+        it.x += it.vx * dt; it.y += it.vy * dt;
+        it.rv += (-it.rot * 180 - it.rv * 9) * dt; it.rot += it.rv * dt;
+      }
+      it.sv += ((1 - it.sc) * 320 - it.sv * 11) * dt; it.sc += it.sv * dt;
+    }
+    for (const p of parts){ p.vy += 300 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt * 1.6; }
+    parts = parts.filter(p => p.life > 0);
+    if (toast){ toast.t -= dt; if (toast.t <= 0) toast = null; }
+  }
+
+  function drawItem(it, lifted){
+    const d = it.d, PADW = d.w / 2 + PAD;
+    ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot);
+    const sx = 1 + (1 - it.sc) * .6, sy = it.sc; ctx.scale(sx, sy); // schiacciamento quando atterra
+    if (lifted){ ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(6, 16, d.w * .55, 7, 0, 0, 7); ctx.fill(); }
+    ctx.drawImage(d.sprite, -PADW, -(d.h + PAD), d.sprite.width / RES, d.sprite.height / RES);
+    ctx.restore();
+  }
+
+  function draw(){
+    C.begin();
+    ctx.drawImage(bg, 0, 0, W, H);
+    // sagome libere (quella giusta si illumina quando ci passi sopra)
+    for (const it of items){
+      if (it.placed) continue;
+      const [sx, sy] = SLOTS[it.d.id], d = it.d;
+      ctx.drawImage(d.sil, sx - d.w / 2 - PAD, sy - d.h - PAD, d.sil.width / RES, d.sil.height / RES);
+      if (dragItem === it && Math.hypot(it.x - sx, it.y - sy) < 60){
+        ctx.strokeStyle = 'rgba(185,122,20,.8)'; ctx.lineWidth = 3; ctx.setLineDash([6, 5]);
+        roundRect(ctx, sx - d.w / 2 - 8, sy - d.h - 8, d.w + 16, d.h + 14, 10); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+    for (const it of items) if (it.placed) drawItem(it, false);
+    for (const it of items) if (!it.placed && it !== dragItem) drawItem(it, false);
+    if (dragItem) drawItem(dragItem, true);
+    for (const p of parts){ ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+
+    // HUD
+    const n = items.filter(i => i.placed).length, m = Math.floor(time / 60), s = Math.floor(time % 60);
+    pill(ctx, 16, 14, 250, 34); ctx.fillStyle = '#fff'; ctx.font = '700 16px "Atkinson Hyperlegible", system-ui, sans-serif';
+    ctx.fillText(n + '/' + items.length + ' al loro posto · ' + m + ':' + String(s).padStart(2, '0'), 30, 37);
+    if (toast){
+      ctx.globalAlpha = Math.min(1, toast.t * 3); pill(ctx, toast.x - 70, toast.y - 30, 140, 30);
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(toast.txt, toast.x, toast.y - 10); ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+    }
+    if (done && doneT > .7) banner(ctx, 'Tutto al suo posto!', '«Che ordine! Ti faccio un caffè?» · Tocca per ricominciare');
+  }
+
+  function hit(p){
+    for (let i = items.length - 1; i >= 0; i--){
+      const it = items[i], d = it.d;
+      if (it.placed) continue;
+      if (p.x > it.x - d.w / 2 - 8 && p.x < it.x + d.w / 2 + 8 && p.y > it.y - d.h - 8 && p.y < it.y + 8) return it;
+    }
+    return null;
+  }
+  cv.addEventListener('pointerdown', e => {
+    if (done){ if (doneT > .7) reset(); return; }
+    const p = localPt(e, cv), it = hit(p);
+    if (!it) return;
+    dragItem = it; items.splice(items.indexOf(it), 1); items.push(it); // porta in primo piano
+    off = { x: it.x - p.x, y: it.y - p.y }; last = p; it.vx = it.vy = 0; it.sv = 2; // piccolo "salto" quando lo prendi
+    cv.setPointerCapture(e.pointerId); beep(420, .05, 'sine', .06);
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!dragItem) return;
+    const p = localPt(e, cv);
+    dragItem.vx = dragItem.vx * .7 + (p.x - last.x) * 60 * .3; // velocità stimata, usata per l'inclinazione
+    dragItem.x = p.x + off.x; dragItem.y = p.y + off.y; last = p;
+  });
+  function drop(){
+    const it = dragItem; if (!it) return; dragItem = null; it.vx *= .2; it.vy = 0;
+    const [sx, sy] = SLOTS[it.d.id];
+    if (Math.hypot(it.x - sx, it.y - sy) < 42){
+      it.placed = true; it.tx = sx; it.ty = sy; it.sv = -5; // scatta e si schiaccia
+      beep(660, .09); setTimeout(() => beep(990, .12), 70); puff(sx, sy - it.d.h / 2, '#d9a441');
+      if (items.every(i => i.placed)){ done = true; doneT = 0; setTimeout(() => { beep(523, .15); beep(659, .2); beep(784, .3); }, 250); }
+      return;
+    }
+    // vicino alla sagoma sbagliata? la nonna protesta
+    for (const other of DEFS){
+      if (other === it.d) continue;
+      const [ox, oy] = SLOTS[other.id];
+      if (Math.hypot(it.x - ox, it.y - oy) < 42 && !items.find(i => i.d === other).placed){
+        it.rv = 14; toast = { txt: 'Non va lì!', x: ox, y: oy - other.h - 6, t: 1.1 }; beep(200, .12, 'square', .05); break;
+      }
+    }
+    it.tx = it.home.x; it.ty = it.home.y;
+  }
+  cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
+
+  reset();
+  return { update, draw, fit: C.fit };
+}
+
+/* ============ Schede e ciclo principale ============ */
+const games = {
+  bocce: Bocce(document.getElementById('cv-bocce')),
+  carretti: Carretti(document.getElementById('cv-carretti')),
+  nonna: Nonna(document.getElementById('cv-nonna'))
+};
+let active = 'bocce';
+const tabs = [...document.querySelectorAll('.tab')];
+function show(id){
+  active = id;
+  for (const t of tabs){
+    const on = t.id === 'tab-' + id;
+    t.setAttribute('aria-selected', on);
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  }
+  games[id].fit();
+  try { localStorage.setItem('prototipo-attivo', id); } catch (e) {}
+}
+tabs.forEach(t => t.addEventListener('click', () => show(t.id.slice(4))));
+{ const h = location.hash.slice(1); let saved = null; try { saved = localStorage.getItem('prototipo-attivo'); } catch (e) {}
+  const start = games[h] ? h : games[saved] ? saved : 'bocce'; show(start); }
+
+window.addEventListener('keydown', e => { if (active === 'carretti') games.carretti.key(e, true); });
+window.addEventListener('keyup', e => { if (active === 'carretti') games.carretti.key(e, false); });
+const ro = new ResizeObserver(() => games[active].fit());
+document.querySelectorAll('.stage').forEach(s => ro.observe(s));
+
+let lastT = performance.now();
+function frame(t){
+  const dt = Math.min(.033, (t - lastT) / 1000); lastT = t;
+  games[active].update(dt); games[active].draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
