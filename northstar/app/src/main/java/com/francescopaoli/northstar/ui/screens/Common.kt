@@ -50,7 +50,7 @@ fun HeaderBand(
             .fillMaxWidth()
             .background(Neon.headerBrush)
     ) {
-        BlobLayer(listOf(blob))
+        BlobLayer(listOf(blob), Modifier.matchParentSize())
         ParticleField(5, Modifier.matchParentSize(), seed = 11)
         Twinkles()
         Column(Modifier.statusBarsPadding().padding(start = 22.dp, end = 22.dp, top = 14.dp, bottom = 24.dp)) { content() }

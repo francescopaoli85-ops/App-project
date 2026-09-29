@@ -1,5 +1,6 @@
 package com.francescopaoli.northstar.ui.components
 
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -164,8 +165,17 @@ fun ProgressRing(
     label: String? = null,
     labelSize: TextUnit = 16.sp,
     delayMs: Int = 0,
+    glowing: Boolean = false,
 ) {
     val anim = remember { Animatable(0f) }
+    // bagliore pulsante sul solo tratto colorato (drop-shadow del mockup), mai sul centro
+    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "ring").animateFloat(
+        0f, 1f,
+        androidx.compose.animation.core.infiniteRepeatable(
+            tween(1200, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            androidx.compose.animation.core.RepeatMode.Reverse,
+        ), label = "p",
+    )
     LaunchedEffect(progress) { anim.animateTo(progress, tween(1100, delayMs, SoftOut)) }
     Box(modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(size)) {
@@ -177,6 +187,10 @@ fun ProgressRing(
             else Brush.linearGradient(listOf(Neon.Violet, Neon.Cyan), Offset.Zero, Offset(this.size.width, this.size.height))
             // piccolo minimo visibile, così anche lo 0% ha un "seme" di colore
             val sweep = 360f * anim.value.coerceAtLeast(0.02f)
+            if (glowing && !muted) {
+                drawArc(brush, -90f, sweep, false, Offset(inset, inset), arcSize, alpha = 0.15f + 0.25f * pulse,
+                    style = Stroke(sw * (1.8f + 0.8f * pulse), cap = StrokeCap.Round))
+            }
             drawArc(brush, -90f, sweep, false, Offset(inset, inset), arcSize, style = Stroke(sw, cap = StrokeCap.Round))
         }
         if (label != null) Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = labelSize)

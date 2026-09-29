@@ -79,7 +79,7 @@ fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Icon(NsIcons.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(16.dp).twinkle(1400))
-                    Text("Nuovo traguardo sbloccato: \"$count raggiunti\"", color = Neon.TextMid, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Nuovo traguardo sbloccato: \"$count ${if (count == 1) "raggiunto" else "raggiunti"}\"", color = Neon.TextMid, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
             Column(

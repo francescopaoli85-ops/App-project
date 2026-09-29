@@ -50,7 +50,6 @@ import com.francescopaoli.northstar.ui.components.Tab
 import com.francescopaoli.northstar.ui.fx.NeonBackdrop
 import com.francescopaoli.northstar.ui.fx.bellSwing
 import com.francescopaoli.northstar.ui.fx.enter
-import com.francescopaoli.northstar.ui.fx.glow
 import com.francescopaoli.northstar.ui.fx.nudgeX
 import com.francescopaoli.northstar.ui.fx.pop
 import com.francescopaoli.northstar.ui.theme.Neon
@@ -181,7 +180,7 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onClick: () -> Unit) {
     NeonCard(modifier.fillMaxWidth(), dashed = postponed, onClick = onClick) {
         ProgressRing(
             g.progress, 42.dp, 4.5.dp, muted = postponed,
-            modifier = if (postponed) Modifier else Modifier.glow(21.dp, blur = 6.dp, durationMs = 2400),
+            glowing = true,
         )
         Column(Modifier.weight(1f)) {
             Text(g.area.label.uppercase(), color = Neon.Text2, style = MaterialTheme.typography.labelSmall)

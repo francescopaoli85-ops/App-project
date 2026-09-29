@@ -105,7 +105,7 @@ fun DetailScreen(
                 )
                 Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     ProgressRing(g.progress, 78.dp, 7.dp, muted = postponed, label = "${(g.progress * 100).toInt()}%",
-                        modifier = Modifier.glow(39.dp, blur = 14.dp, durationMs = 2400))
+                        glowing = true)
                     Column {
                         Chip(g.area.label, Modifier.pop(150), filled = true)
                         Text(g.title, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 23.sp,

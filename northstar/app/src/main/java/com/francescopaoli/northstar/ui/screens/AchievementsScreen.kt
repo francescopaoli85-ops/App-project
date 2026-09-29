@@ -61,7 +61,7 @@ fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
                     Brush.linearGradient(listOf(Neon.Surface, Color(0xFF2E1A5C), Neon.SurfaceHi)),
                 ),
             ) {
-                BlobLayer(listOf(Blob(0f, 0f, 0.5f, Neon.Violet, 0.3f)))
+                BlobLayer(listOf(Blob(0f, 0f, 0.5f, Neon.Violet, 0.3f)), Modifier.matchParentSize())
                 RisingSparks(Modifier.matchParentSize())
                 RoundIconButton(NsIcons.Back, "Indietro", onBack,
                     Modifier.statusBarsPadding().padding(start = 22.dp, top = 24.dp))
@@ -74,7 +74,7 @@ fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
                     GradientIconTile(NsIcons.Trophy, 54.dp, 16.dp, 24.dp)
                     Text("Traguardi", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(top = 12.dp))
                     Text(
-                        if (done.isEmpty()) "Il primo è là che ti aspetta" else "${done.size} obiettivi raggiunti finora",
+                        if (done.isEmpty()) "Il primo è là che ti aspetta" else if (done.size == 1) "1 obiettivo raggiunto finora" else "${done.size} obiettivi raggiunti finora",
                         color = Neon.Text2, fontSize = 12.5.sp, modifier = Modifier.padding(top = 4.dp),
                     )
                 }

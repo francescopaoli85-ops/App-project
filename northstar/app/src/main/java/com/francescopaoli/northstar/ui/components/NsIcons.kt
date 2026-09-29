@@ -1,5 +1,6 @@
 package com.francescopaoli.northstar.ui.components
 
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
@@ -42,7 +43,7 @@ object NsIcons {
         "quote",
         "M0 20V11.3C0 4.7 3.9.5 9.7 0l.8 2.8c-3.7.7-5.7 3.1-5.9 6.2H9.2v11H0zm14.1 0V11.3c0-6.6 3.9-10.8 9.7-11.3l.8 2.8c-3.7.7-5.7 3.1-5.9 6.2h4.6v11h-9.2z",
     )
-    val Bell = stroke("bell", "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9", "M13.7 21a2 2 0 01-3.4 0")
+    val Bell = stroke("bell", "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9", "M13.7 21a2 2 0 0 1-3.4 0")
     val Mic = stroke(
         "mic", "M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z", "M19 10v2a7 7 0 0 1-14 0v-2", "M12 19L12 23",
     )
@@ -52,10 +53,8 @@ object NsIcons {
     )
     val Home = stroke("home", "M3 11l9-8 9 8", "M5 10v10h14V10")
     val Award = stroke("award", "M6 8a6 6 0 1 0 12 0a6 6 0 1 0 -12 0", "M8.2 13.6L6 22l6-3 6 3-2.2-8.4")
-    val Settings = stroke(
-        "settings", "M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0",
-        "M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.6-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.6V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.6 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.6 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.6 1z",
-    )
+    /** Ingranaggio: quello di Material, il tracciato Feather usa archi compatti che Android non legge. */
+    val Settings = androidx.compose.material.icons.Icons.Outlined.Settings
     val Close = stroke("close", "M18 6L6 18", "M6 6l12 12")
     val Back = stroke("back", "M15 18l-6-6 6-6")
     val Chevron = stroke("chevron", "M9 18l6-6-6-6")

@@ -72,9 +72,10 @@ fun NeonBackdrop(
 }
 
 @Composable
-fun BlobLayer(blobs: List<Blob>) {
+fun BlobLayer(blobs: List<Blob>, modifier: Modifier = Modifier.fillMaxSize()) {
     val t = rememberClock()
-    Canvas(Modifier.fillMaxSize()) {
+    // dentro un header va passato Modifier.matchParentSize(): fillMaxSize lo allargherebbe a tutto lo schermo
+    Canvas(modifier) {
         blobs.forEachIndexed { i, b ->
             // opacità e scala pulsano lentamente (tipo pulseBlob del mockup)
             val k = (sin(2 * PI * t / b.periodS + i).toFloat() + 1f) / 2f
