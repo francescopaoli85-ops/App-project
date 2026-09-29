@@ -1,0 +1,12 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.kotlin/
+# Config Firebase personale: non va nel repo pubblico
+app/google-services.json
+*.jks
+*.keystore
