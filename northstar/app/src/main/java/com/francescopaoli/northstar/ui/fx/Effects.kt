@@ -164,6 +164,14 @@ fun Modifier.nudgeX(distance: Dp = 3.dp, durationMs: Int = 1600): Modifier = com
     graphicsLayer { translationX = distance.toPx() * x }
 }
 
+/** Ruota avanti e indietro di [angle] gradi (icona calendario che "ticchetta"). */
+fun Modifier.rock(angle: Float = 90f, durationMs: Int = 2000): Modifier = composed {
+    val r by rememberInfiniteTransition(label = "rock").animateFloat(
+        0f, angle, infiniteRepeatable(tween(durationMs / 2, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "r",
+    )
+    graphicsLayer { rotationZ = r }
+}
+
 /** Scintillio (twinkle): opacità e scala pulsanti. */
 fun Modifier.twinkle(durationMs: Int = 2200, delayMs: Int = 0): Modifier = composed {
     val v by rememberInfiniteTransition(label = "tw").animateFloat(

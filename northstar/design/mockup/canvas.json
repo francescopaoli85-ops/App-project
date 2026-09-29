@@ -1,0 +1,23 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-09-29T19:56:00Z"},
+  "title": "Northstar - Mockup",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Login.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "Login", "is_interactive": true},
+    "Home.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "Home", "is_interactive": true},
+    "NuovoObiettivo.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "Nuovo obiettivo (guida PNL)", "is_interactive": true},
+    "ObiettivoDettaglio.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "Dettaglio obiettivo", "is_interactive": true},
+    "Traguardi.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "Traguardi", "is_interactive": true},
+    "CollegaCalendar.dc.html": {"x": 470, "y": 990, "w": 390, "h": 844, "title": "Collega calendario", "is_interactive": true},
+    "PromemoriaCheckin.dc.html": {"x": 1410, "y": 990, "w": 390, "h": 844, "title": "Promemoria check-in", "is_interactive": true},
+    "Celebrazione.dc.html": {"x": 1880, "y": 990, "w": 390, "h": 844, "title": "Celebrazione traguardo", "is_interactive": true}
+  },
+  "order": ["Login.dc.html", "Home.dc.html", "NuovoObiettivo.dc.html", "ObiettivoDettaglio.dc.html", "Traguardi.dc.html", "CollegaCalendar.dc.html", "PromemoriaCheckin.dc.html", "Celebrazione.dc.html"],
+  "notes": {
+    "n1": {"x": 0, "y": -300, "text": "Northstar — percorso mockup (tema Notte neon)", "kind": "title1", "maxW": 2260},
+    "n2": {"x": 470, "y": 940, "text": "Schermate extra: attivate dai flussi sopra", "kind": "title1", "maxW": 1800}
+  },
+  "designSystems": []
+}

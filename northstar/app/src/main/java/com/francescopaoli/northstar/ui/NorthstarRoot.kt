@@ -132,7 +132,7 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
                     onHome = { nav.popBackStack(Routes.HOME, false) },
                 )
             }
-            composable(Routes.ACHIEVEMENTS) { AchievementsScreen(vm, onTab = { nav.goTab(it) }) }
+            composable(Routes.ACHIEVEMENTS) { AchievementsScreen(vm, onBack = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) }) }
             composable(Routes.CALENDAR) {
                 CalendarConnectScreen(vm, onDone = { if (!nav.popBackStack(Routes.HOME, false)) nav.navigate(Routes.HOME) })
             }

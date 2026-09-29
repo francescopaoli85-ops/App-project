@@ -29,11 +29,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.francescopaoli.northstar.data.GoalStatus
 import com.francescopaoli.northstar.domain.SummaryBuilder
 import com.francescopaoli.northstar.ui.MainViewModel
-import com.francescopaoli.northstar.ui.components.BottomNav
 import com.francescopaoli.northstar.ui.components.GradientIconTile
 import com.francescopaoli.northstar.ui.components.NeonCard
 import com.francescopaoli.northstar.ui.components.NsIcons
-import com.francescopaoli.northstar.ui.components.Tab
+import com.francescopaoli.northstar.ui.components.RoundIconButton
+import androidx.compose.foundation.layout.navigationBarsPadding
 import com.francescopaoli.northstar.ui.fx.Blob
 import com.francescopaoli.northstar.ui.fx.BlobLayer
 import com.francescopaoli.northstar.ui.fx.NeonBackdrop
@@ -46,7 +46,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 @Composable
-fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
+fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val done = goals.filter { it.status == GoalStatus.ACHIEVED }.sortedByDescending { it.achievedAt ?: 0 }
 
@@ -60,6 +60,8 @@ fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
             ) {
                 BlobLayer(listOf(Blob(0f, 0f, 0.5f, Neon.Violet, 0.3f)))
                 RisingSparks(Modifier.matchParentSize())
+                RoundIconButton(NsIcons.Back, "Indietro", onBack,
+                    Modifier.statusBarsPadding().padding(start = 22.dp, top = 24.dp))
                 Icon(NsIcons.Sparkle, null, tint = Neon.Cyan, modifier = Modifier.padding(start = 40.dp, top = 50.dp).size(9.dp).twinkle())
                 Icon(NsIcons.Sparkle, null, tint = Neon.Lilac, modifier = Modifier.align(Alignment.TopEnd).padding(end = 54.dp, top = 70.dp).size(7.dp).twinkle(2200, 600))
                 Column(
@@ -75,8 +77,8 @@ fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
                 }
             }
             LazyColumn(
-                Modifier.weight(1f),
-                contentPadding = PaddingValues(22.dp),
+                Modifier.weight(1f).navigationBarsPadding(),
+                contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 40.dp),
                 verticalArrangement = Arrangement.spacedBy(11.dp),
             ) {
                 if (done.isEmpty()) item {
@@ -103,7 +105,6 @@ fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
                     }
                 }
             }
-            BottomNav(Tab.TRAGUARDI, onTab)
         }
     }
 }

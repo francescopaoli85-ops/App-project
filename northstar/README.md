@@ -2,6 +2,7 @@
 
 App Android (Kotlin + Jetpack Compose) che trasforma un desiderio vago in un **obiettivo ben formato** secondo i 6 criteri PNL.
 Specifiche: doc *Northstar — Specifiche per sviluppo*. Tema: **Notte Neon**.
+Mockup di riferimento (8 schermate, apribili nel browser come sorgente HTML): `design/mockup/`.
 
 ## Provarla subito
 

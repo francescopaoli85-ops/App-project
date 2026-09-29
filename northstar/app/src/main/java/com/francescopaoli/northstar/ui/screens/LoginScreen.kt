@@ -145,7 +145,7 @@ private fun GoogleButton(busy: Boolean, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (busy) CircularProgressIndicator(Modifier.size(18.dp), color = Neon.Violet, strokeWidth = 2.dp)
-        else Text("G", color = Color(0xFF4285F4), fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        else androidx.compose.foundation.Image(NsIcons.Google, "Google", Modifier.size(18.dp))
         Spacer(Modifier.width(10.dp))
         Text("Continua con Google", color = Color(0xFF17102E), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
     }

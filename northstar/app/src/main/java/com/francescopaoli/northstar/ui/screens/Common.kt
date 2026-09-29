@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import com.francescopaoli.northstar.ui.fx.twinkle
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
@@ -49,10 +51,22 @@ fun HeaderBand(
             .background(Neon.headerBrush)
     ) {
         BlobLayer(listOf(blob))
-        ParticleField(5, seed = 11, modifier = Modifier.matchParentSize())
+        ParticleField(5, Modifier.matchParentSize(), seed = 11)
+        Twinkles()
         Column(Modifier.statusBarsPadding().padding(start = 22.dp, end = 22.dp, top = 14.dp, bottom = 24.dp)) { content() }
         Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(0.dp).background(Neon.Violet.copy(alpha = 0.25f)).padding(top = 1.dp))
     }
+}
+
+/** Due stelline che scintillano, come negli header del mockup. */
+@Composable
+fun androidx.compose.foundation.layout.BoxScope.Twinkles() {
+    androidx.compose.foundation.Canvas(
+        Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 50.dp, top = 18.dp).size(7.dp).twinkle(2000),
+    ) { drawCircle(Neon.Cyan) }
+    androidx.compose.foundation.Canvas(
+        Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(end = 60.dp, top = 34.dp).size(5.dp).twinkle(2600, 500),
+    ) { drawCircle(Neon.Lilac) }
 }
 
 @Composable

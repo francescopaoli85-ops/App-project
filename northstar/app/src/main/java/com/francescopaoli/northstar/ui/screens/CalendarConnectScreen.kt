@@ -38,7 +38,7 @@ import com.francescopaoli.northstar.ui.fx.Blob
 import com.francescopaoli.northstar.ui.fx.NeonBackdrop
 import com.francescopaoli.northstar.ui.fx.enter
 import com.francescopaoli.northstar.ui.fx.pop
-import com.francescopaoli.northstar.ui.fx.spin
+import com.francescopaoli.northstar.ui.fx.rock
 import com.francescopaoli.northstar.ui.theme.Neon
 import kotlinx.coroutines.launch
 
@@ -59,7 +59,7 @@ fun CalendarConnectScreen(vm: MainViewModel, onDone: () -> Unit) {
                 RoundIconButton(NsIcons.Close, "Chiudi", { vm.calendarPromptSeen(); onDone() })
             }
             Column(Modifier.weight(1f).padding(horizontal = 28.dp)) {
-                GradientIconTile(NsIcons.Calendar, 66.dp, 20.dp, 30.dp, Modifier.enter(0))
+                GradientIconTile(NsIcons.Calendar, 66.dp, 20.dp, 30.dp, Modifier.enter(0), iconModifier = Modifier.rock())
                 Spacer(Modifier.height(22.dp))
                 Text("Northstar funziona meglio\ncon Google Calendar", color = Color.White, fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold, lineHeight = 30.sp, modifier = Modifier.enter(0))

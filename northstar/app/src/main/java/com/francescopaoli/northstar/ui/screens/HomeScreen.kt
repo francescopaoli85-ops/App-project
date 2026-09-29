@@ -49,6 +49,7 @@ import com.francescopaoli.northstar.ui.components.Tab
 import com.francescopaoli.northstar.ui.fx.NeonBackdrop
 import com.francescopaoli.northstar.ui.fx.bellSwing
 import com.francescopaoli.northstar.ui.fx.enter
+import com.francescopaoli.northstar.ui.fx.glow
 import com.francescopaoli.northstar.ui.fx.nudgeX
 import com.francescopaoli.northstar.ui.fx.pop
 import com.francescopaoli.northstar.ui.theme.Neon
@@ -77,6 +78,7 @@ fun HomeScreen(
     val achieved = goals.count { it.status == GoalStatus.ACHIEVED }
 
     NeonBackdrop(particles = 8, seed = 2) {
+        Twinkles()
         Column(Modifier.fillMaxSize()) {
             LazyColumn(
                 Modifier.weight(1f),
@@ -173,7 +175,10 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onClick: () -> Unit) {
         else -> "$days giorni rimasti"
     }
     NeonCard(modifier.fillMaxWidth(), dashed = postponed, onClick = onClick) {
-        ProgressRing(g.progress, 42.dp, 4.5.dp, muted = postponed)
+        ProgressRing(
+            g.progress, 42.dp, 4.5.dp, muted = postponed,
+            modifier = if (postponed) Modifier else Modifier.glow(21.dp, blur = 6.dp, durationMs = 2400),
+        )
         Column(Modifier.weight(1f)) {
             Text(g.area.label.uppercase(), color = Neon.Text2, style = MaterialTheme.typography.labelSmall)
             Text(g.title, color = Neon.Text, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, maxLines = 2,
