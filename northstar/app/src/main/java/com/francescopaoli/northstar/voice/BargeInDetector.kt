@@ -12,8 +12,8 @@ import kotlin.math.sqrt
 
 /**
  * Ascolta il microfono MENTRE la voce guida parla e avvisa appena l'utente inizia a parlare.
- * Usa la sorgente VOICE_COMMUNICATION con cancellazione dell'eco, così la voce del
- * telefono stesso non fa scattare l'interruzione.
+ * Usa la sorgente VOICE_COMMUNICATION con cancellazione dell'eco (la voce guida esce
+ * sullo stesso canale "chiamata", vedi VoiceGuide) e [BargeInLogic] per scartare l'eco residua.
  */
 class BargeInDetector(private val onVoice: () -> Unit) {
 
@@ -41,21 +41,13 @@ class BargeInDetector(private val onVoice: () -> Unit) {
             ns?.enabled = true
 
             val frame = ShortArray(rate / 50) // 20 ms
-            var noiseFloor = 0.0
-            var calibrated = 0
-            var loudFrames = 0
+            val logic = BargeInLogic()
             rec.startRecording()
             try {
                 while (running) {
                     val n = rec.read(frame, 0, frame.size)
                     if (n <= 0) continue
-                    val db = rmsDb(frame, n)
-                    // primi 300 ms: misuro il rumore di fondo
-                    if (calibrated < 15) {
-                        noiseFloor = (noiseFloor * calibrated + db) / (calibrated + 1); calibrated++; continue
-                    }
-                    loudFrames = if (db > noiseFloor + 14 && db > 45) loudFrames + 1 else 0
-                    if (loudFrames >= 5) { // ~100 ms di voce continua
+                    if (logic.onFrame(rmsDb(frame, n))) {
                         running = false
                         onVoice()
                     }
