@@ -52,7 +52,7 @@ In debug l'app usa sempre gli **annunci di test** di Google (non cliccare mai i 
    ADMOB_NATIVE_ID=ca-app-pub-XXXXXXXX/ZZZZZZZZ
    ```
 4. AdMob → **Privacy e messaggi** → crea il messaggio di consenso **GDPR** (in UE è obbligatorio; l'app lo mostra da sola al primo avvio).
-5. Play Console → **Prodotti in-app** → crea il prodotto con ID `remove_ads` (una tantum, es. 2,99 €).
+5. Play Console → **Prodotti in-app** → crea il prodotto con ID `remove_ads` (una tantum, prezzo scelto: **3,99 €**).
    L'acquisto si prova solo con l'app caricata almeno su un canale di test e un account "tester licenze".
 
 ## Pubblicare su Play Store
