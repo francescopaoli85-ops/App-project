@@ -45,6 +45,8 @@ import com.francescopaoli.northstar.ui.theme.Neon
 @Composable
 fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: () -> Unit) {
     val s by vm.settings.collectAsStateWithLifecycle()
+    val activity = androidx.compose.ui.platform.LocalContext.current as android.app.Activity
+    val price by vm.removeAdsPrice.collectAsStateWithLifecycle()
     val session = (vm.session.collectAsStateWithLifecycle().value as? SessionState.LoggedIn)?.session
 
     NeonBackdrop(particles = 6, seed = 14) {
@@ -91,7 +93,26 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                     Toggle("Check-in periodici", s.checkins, vm::setCheckins)
                 }
 
-                GhostButton("Esci", vm::signOut, Modifier.fillMaxWidth().enter(3))
+                NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {
+                    Label("Pubblicità")
+                    if (s.adFree) {
+                        Text("Pubblicità rimossa ✦ Grazie per il supporto!", color = Neon.Cyan, fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
+                    } else {
+                        Text(
+                            "Qualche card sponsorizzata tiene l'app gratuita. Puoi toglierle per sempre con un solo acquisto.",
+                            color = Neon.Text2, fontSize = 12.5.sp, lineHeight = 19.sp, modifier = Modifier.padding(bottom = 12.dp),
+                        )
+                        com.francescopaoli.northstar.ui.components.GradientButton(
+                            price?.let { "Rimuovi pubblicità · $it" } ?: "Rimuovi pubblicità",
+                            { vm.buyRemoveAds(activity) }, Modifier.fillMaxWidth(), glowing = false,
+                        )
+                        TextLink("Ripristina acquisto", vm::restorePurchases, Modifier.fillMaxWidth(), color = Neon.Text3)
+                    }
+                    if (vm.privacyOptionsRequired) TextLink("Preferenze privacy annunci", { vm.showPrivacyOptions(activity) },
+                        Modifier.fillMaxWidth(), color = Neon.Text3)
+                }
+
+                GhostButton("Esci", vm::signOut, Modifier.fillMaxWidth().enter(4))
             }
             BottomNav(Tab.IMPOSTAZIONI, onTab)
         }

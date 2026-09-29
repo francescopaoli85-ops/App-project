@@ -10,6 +10,13 @@ if (file("google-services.json").exists()) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
 }
 
+// AdMob: di default gli ID di TEST di Google. Per la release metti i tuoi in
+// ~/.gradle/gradle.properties (ADMOB_APP_ID, ADMOB_NATIVE_ID), non nel repo.
+val testAppId = "ca-app-pub-3940256099942544~3347511713"
+val testNativeId = "ca-app-pub-3940256099942544/2247696110"
+val admobAppId = providers.gradleProperty("ADMOB_APP_ID").getOrElse(testAppId)
+val admobNativeId = providers.gradleProperty("ADMOB_NATIVE_ID").getOrElse(testNativeId)
+
 android {
     namespace = "com.francescopaoli.northstar"
     compileSdk = 35
@@ -20,9 +27,16 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+        manifestPlaceholders["admobAppId"] = admobAppId
+        buildConfigField("String", "ADMOB_NATIVE_ID", "\"$admobNativeId\"")
     }
 
     buildTypes {
+        debug {
+            // in debug sempre annunci di test: cliccare i propri annunci veri fa bannare l'account
+            manifestPlaceholders["admobAppId"] = testAppId
+            buildConfigField("String", "ADMOB_NATIVE_ID", "\"$testNativeId\"")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -38,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -64,6 +79,9 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.play.services.auth)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.play.services.ads)
+    implementation(libs.ump)
+    implementation(libs.billing)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)

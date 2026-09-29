@@ -23,6 +23,8 @@ data class Settings(
     val checkins: Boolean = true,
     /** Nome per la modalità locale (senza login). */
     val localName: String? = null,
+    /** Ha acquistato "Rimuovi pubblicità". */
+    val adFree: Boolean = false,
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -36,6 +38,7 @@ class SettingsStore(private val context: Context) {
         val voice = booleanPreferencesKey("voice_guide")
         val checkins = booleanPreferencesKey("checkins")
         val localName = stringPreferencesKey("local_name")
+        val adFree = booleanPreferencesKey("ad_free")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -50,6 +53,7 @@ class SettingsStore(private val context: Context) {
         voiceGuide = this[K.voice] ?: true,
         checkins = this[K.checkins] ?: true,
         localName = this[K.localName],
+        adFree = this[K.adFree] ?: false,
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -66,6 +70,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setCalendarPromptSeen() = context.dataStore.edit { it[K.promptSeen] = true }
     suspend fun setVoiceGuide(v: Boolean) = context.dataStore.edit { it[K.voice] = v }
     suspend fun setCheckins(v: Boolean) = context.dataStore.edit { it[K.checkins] = v }
+    suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {
         if (v == null) it.remove(K.localName) else it[K.localName] = v
     }

@@ -37,11 +37,30 @@ Nel progetto Google Cloud creato da Firebase ([console.cloud.google.com](https:/
 
 Il client OAuth Android lo crea già Firebase quando inserisci lo SHA-1.
 
+### 3. Pubblicità (AdMob) e "Rimuovi pubblicità"
+Solo **card native** nello stile dell'app, dentro le liste:
+Home (dopo il 2° obiettivo), Traguardi (dopo il 3°), Dettaglio (in fondo).
+**Mai** nel percorso a 6 domande, nella Celebrazione e nel Check-in. Niente banner, niente schermo intero.
+
+In debug l'app usa sempre gli **annunci di test** di Google (non cliccare mai i tuoi annunci veri: AdMob banna l'account).
+
+1. Crea un account su [admob.google.com](https://admob.google.com) → **Aggiungi app** (Android).
+2. Crea un blocco annunci **Nativo avanzato**.
+3. Metti gli ID in `~/.gradle/gradle.properties` (fuori dal repo):
+   ```
+   ADMOB_APP_ID=ca-app-pub-XXXXXXXX~YYYYYYYY
+   ADMOB_NATIVE_ID=ca-app-pub-XXXXXXXX/ZZZZZZZZ
+   ```
+4. AdMob → **Privacy e messaggi** → crea il messaggio di consenso **GDPR** (in UE è obbligatorio; l'app lo mostra da sola al primo avvio).
+5. Play Console → **Prodotti in-app** → crea il prodotto con ID `remove_ads` (una tantum, es. 2,99 €).
+   L'acquisto si prova solo con l'app caricata almeno su un canale di test e un account "tester licenze".
+
 ## Pubblicare su Play Store
 1. Crea una chiave di firma (Android Studio → *Build → Generate Signed App Bundle*).
 2. `./gradlew bundleRelease` → carica il `.aab` sulla Play Console.
 3. Aggiungi su Firebase anche lo **SHA-1 di Play App Signing** (lo trovi nella Play Console), altrimenti il login Google non funziona nella versione scaricata dallo store.
-4. Per Calendar in produzione: la schermata di consenso va inviata a Google per la verifica (scope sensibile).
+4. Con la pubblicità servono una **privacy policy** (link nella scheda dello store) e il modulo **Sicurezza dei dati** che dichiara l'uso dell'ID pubblicità.
+5. Per Calendar in produzione: la schermata di consenso va inviata a Google per la verifica (scope sensibile).
 
 ## Come è fatta
 
@@ -52,6 +71,8 @@ app/src/main/java/com/francescopaoli/northstar/
 ├── auth/        Login Google (Credential Manager) + email, modalità locale
 ├── calendar/    Eventi su Google Calendar via REST
 ├── voice/       Voce guida (TTS) + ascolto con interruzione immediata
+├── ads/         Consenso GDPR, AdMob, card native in stile neon
+├── billing/     Acquisto una tantum "Rimuovi pubblicità"
 ├── notify/      Check-in e domanda "l'hai raggiunto?" (WorkManager, 1 volta al giorno)
 └── ui/
     ├── fx/          Libreria animazioni (gradienti, glow, shimmer, particelle, coriandoli…)

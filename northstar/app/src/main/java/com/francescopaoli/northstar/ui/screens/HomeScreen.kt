@@ -1,5 +1,7 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ads.AdPlacement
+import com.francescopaoli.northstar.ads.NativeAdCard
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +66,7 @@ fun HomeScreen(
     val goals by vm.goals.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
     val session by vm.session.collectAsStateWithLifecycle()
+    val showAds by vm.showAds.collectAsStateWithLifecycle()
     val name = (session as? SessionState.LoggedIn)?.session?.name.orEmpty()
 
     // permesso notifiche (Android 13+) per i check-in
@@ -113,8 +115,10 @@ fun HomeScreen(
                 if (open.isEmpty()) {
                     item { EmptyState(Modifier.enter(1)) }
                 }
-                itemsIndexed(open, key = { _, g -> g.id }) { i, g ->
-                    GoalCard(g, Modifier.enter(i, baseDelayMs = 50)) { onOpen(g.id) }
+                val adSlot = if (showAds) AdPlacement.slot(open.size, AdPlacement.HOME_AFTER) else null
+                open.forEachIndexed { i, g ->
+                    item(key = g.id) { GoalCard(g, Modifier.enter(i, baseDelayMs = 50)) { onOpen(g.id) } }
+                    if (adSlot == i + 1) item(key = "ad") { NativeAdCard(Modifier.fillMaxWidth().enter(0, baseDelayMs = 450)) }
                 }
             }
             BottomNav(Tab.HOME, onTab)

@@ -57,6 +57,17 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
     val settings: StateFlow<Settings> = c.settings.settings
         .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
 
+    /** true = mostra le card sponsorizzate (consenso ok e niente acquisto "Rimuovi pubblicità"). */
+    val showAds: StateFlow<Boolean> = c.ads.showAds.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val removeAdsPrice: StateFlow<String?> = c.billing.price
+    val privacyOptionsRequired get() = c.ads.privacyOptionsRequired
+
+    fun buyRemoveAds(activity: Activity) {
+        if (!c.billing.buy(activity)) messages.value = "Acquisto non disponibile ora, riprova tra poco"
+    }
+    fun restorePurchases() = viewModelScope.launch { c.billing.restore(); messages.value = "Acquisti controllati" }
+    fun showPrivacyOptions(activity: Activity) = c.ads.showPrivacyOptions(activity)
+
     /** Obiettivo in attesa di conferma per il calendario (modalità "chiedi ogni volta"). */
     val calendarConfirm = MutableStateFlow<Goal?>(null)
 

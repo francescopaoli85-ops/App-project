@@ -53,3 +53,14 @@ class DomainTest {
         assertEquals(CalendarMode.AUTO, PersonalityProfiler.calendarMode(signals))
     }
 }
+
+class AdPlacementTest {
+    @Test
+    fun noAdInEmptyList() = assertEquals(null, com.francescopaoli.northstar.ads.AdPlacement.slot(0, 2))
+
+    @Test
+    fun adAtEndOfShortList() = assertEquals(1, com.francescopaoli.northstar.ads.AdPlacement.slot(1, 2))
+
+    @Test
+    fun adAfterSecondItem() = assertEquals(2, com.francescopaoli.northstar.ads.AdPlacement.slot(5, 2))
+}

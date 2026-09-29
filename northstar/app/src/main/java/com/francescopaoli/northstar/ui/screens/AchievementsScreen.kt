@@ -1,5 +1,7 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ads.AdPlacement
+import com.francescopaoli.northstar.ads.NativeAdCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +50,7 @@ import java.time.ZoneId
 @Composable
 fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
     val goals by vm.goals.collectAsStateWithLifecycle()
+    val showAds by vm.showAds.collectAsStateWithLifecycle()
     val done = goals.filter { it.status == GoalStatus.ACHIEVED }.sortedByDescending { it.achievedAt ?: 0 }
 
     NeonBackdrop(blobs = emptyList(), particles = 6, seed = 12) {
@@ -87,6 +90,7 @@ fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
                             color = Neon.Text2, fontSize = 13.sp, lineHeight = 20.sp)
                     }
                 }
+                val adSlot = if (showAds) AdPlacement.slot(done.size, AdPlacement.ACHIEVEMENTS_AFTER) else null
                 itemsIndexed(done, key = { _, g -> g.id }) { i, g ->
                     val date = g.achievedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate() }
                     NeonCard(Modifier.fillMaxWidth().enter(i, 60), padding = 16.dp) {
@@ -103,6 +107,7 @@ fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
                             )
                         }
                     }
+                    if (adSlot == i + 1) NativeAdCard(Modifier.fillMaxWidth().padding(top = 11.dp).enter(0, baseDelayMs = 450))
                 }
             }
         }

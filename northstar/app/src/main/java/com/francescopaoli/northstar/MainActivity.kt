@@ -24,6 +24,8 @@ class MainActivity : ComponentActivity() {
         )
         pendingRoute.value = intent.getStringExtra(Notifications.EXTRA_ROUTE)
         val container = (application as NorthstarApp).container
+        container.ads.gatherConsent(this)
+        container.billing.connect()
         setContent {
             NorthstarTheme {
                 NorthstarRoot(

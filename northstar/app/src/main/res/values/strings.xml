@@ -2,4 +2,5 @@
     <string name="app_name">Northstar</string>
     <string name="channel_checkin">Check-in obiettivi</string>
     <string name="channel_checkin_desc">Promemoria leggeri sui tuoi obiettivi e scadenze</string>
+    <string name="ad_label">Annuncio</string>
 </resources>

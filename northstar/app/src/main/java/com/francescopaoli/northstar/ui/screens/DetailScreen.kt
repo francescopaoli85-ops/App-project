@@ -1,5 +1,6 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ads.NativeAdCard
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
@@ -77,6 +78,7 @@ fun DetailScreen(
 ) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
+    val showAds by vm.showAds.collectAsStateWithLifecycle()
     val g = goals.firstOrNull { it.id == id } ?: run { NeonBackdrop { }; return }
     var pickDate by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
@@ -143,6 +145,7 @@ fun DetailScreen(
                 }
 
                 AnswersCard(g, Modifier.enter(3))
+                if (showAds) NativeAdCard(Modifier.fillMaxWidth().enter(4, baseDelayMs = 300))
                 TextLink("Elimina obiettivo", { confirmDelete = true }, Modifier.align(Alignment.CenterHorizontally), color = Neon.Text3)
             }
 
