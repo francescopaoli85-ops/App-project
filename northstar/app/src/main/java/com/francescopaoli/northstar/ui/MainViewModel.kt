@@ -120,7 +120,10 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
     }
 
     fun toggleAction(id: String, actionId: String) = goal(id)?.let { g ->
-        save(g.copy(actions = g.actions.map { if (it.id == actionId) it.copy(done = !it.done) else it }))
+        val now = System.currentTimeMillis()
+        save(g.copy(actions = g.actions.map {
+            if (it.id == actionId) it.copy(done = !it.done, doneAt = if (it.done) null else now) else it
+        }))
     }
 
     fun removeAction(id: String, actionId: String) = goal(id)?.let { g ->
@@ -129,6 +132,14 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
 
     fun achieve(id: String) = goal(id)?.let {
         save(it.copy(status = GoalStatus.ACHIEVED, achievedAt = System.currentTimeMillis()))
+    }
+
+    /** Annulla un "raggiunto" premuto per sbaglio: torna com'era prima. */
+    fun undoAchieve(id: String) = goal(id)?.let {
+        save(it.copy(
+            status = if (it.postponedCount > 0) GoalStatus.POSTPONED else GoalStatus.ACTIVE,
+            achievedAt = null,
+        ))
     }
 
     /** Posticipa: cambia colore ma senza toni colpevolizzanti. */

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -70,6 +71,10 @@ class SettingsStore(private val context: Context) {
     suspend fun setCalendarPromptSeen() = context.dataStore.edit { it[K.promptSeen] = true }
     suspend fun setVoiceGuide(v: Boolean) = context.dataStore.edit { it[K.voice] = v }
     suspend fun setCheckins(v: Boolean) = context.dataStore.edit { it[K.checkins] = v }
+    /** Ultimo periodo (settimana o giorno) in cui è partita la notifica [tag]. */
+    suspend fun lastSent(tag: String): Long? = context.dataStore.data.first()[longPreferencesKey("sent_$tag")]
+    suspend fun markSent(tag: String, period: Long) = context.dataStore.edit { it[longPreferencesKey("sent_$tag")] = period }
+
     suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {
         if (v == null) it.remove(K.localName) else it[K.localName] = v

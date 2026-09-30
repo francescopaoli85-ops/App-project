@@ -64,3 +64,40 @@ class AdPlacementTest {
     @Test
     fun adAfterSecondItem() = assertEquals(2, com.francescopaoli.northstar.ads.AdPlacement.slot(5, 2))
 }
+
+class EngagementTest {
+    private val zone = java.time.ZoneId.systemDefault()
+    private fun at(d: LocalDate) = d.atTime(12, 0).atZone(zone).toInstant().toEpochMilli()
+    private val wed = LocalDate.of(2026, 9, 30) // mercoledì
+
+    private fun goalWithDone(vararg days: LocalDate) = com.francescopaoli.northstar.data.Goal(
+        actions = days.mapIndexed { i, d ->
+            com.francescopaoli.northstar.data.GoalAction(id = "$i", text = "a$i", done = true, doneAt = at(d))
+        } + com.francescopaoli.northstar.data.GoalAction(id = "next", text = "prossimo"),
+    )
+
+    @Test
+    fun streakCountsConsecutiveWeeks() {
+        val g = goalWithDone(wed, wed.minusWeeks(1), wed.minusWeeks(2), wed.minusWeeks(4))
+        assertEquals(3, Engagement.streakWeeks(listOf(g), wed))
+    }
+
+    @Test
+    fun currentWeekWithoutStepsDoesNotBreakStreak() {
+        val g = goalWithDone(wed.minusWeeks(1), wed.minusWeeks(2))
+        assertEquals(2, Engagement.streakWeeks(listOf(g), wed))
+    }
+
+    @Test
+    fun missedWeekResetsStreak() {
+        val g = goalWithDone(wed.minusWeeks(2))
+        assertEquals(0, Engagement.streakWeeks(listOf(g), wed))
+    }
+
+    @Test
+    fun weeklyStepIsFirstUndoneAndDoneThisWeekFiltersByWeek() {
+        val g = goalWithDone(wed.minusDays(1), wed.minusWeeks(1))
+        assertEquals("next", Engagement.weeklyStep(g)?.id)
+        assertEquals(1, Engagement.doneThisWeek(listOf(g), wed).size)
+    }
+}

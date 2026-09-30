@@ -13,7 +13,7 @@ object GoalMapper {
         "summary" to g.summary,
         "deadlineEpochDay" to g.deadlineEpochDay,
         "status" to g.status.name,
-        "actions" to g.actions.map { mapOf("id" to it.id, "text" to it.text, "done" to it.done) },
+        "actions" to g.actions.map { mapOf("id" to it.id, "text" to it.text, "done" to it.done, "doneAt" to it.doneAt) },
         "createdAt" to g.createdAt,
         "achievedAt" to g.achievedAt,
         "postponedCount" to g.postponedCount,
@@ -34,6 +34,7 @@ object GoalMapper {
                 id = it["id"].toString(),
                 text = it["text"].toString(),
                 done = it["done"] as? Boolean ?: false,
+                doneAt = (it["doneAt"] as? Number)?.toLong(),
             )
         }
         Goal(

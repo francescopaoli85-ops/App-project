@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,10 +46,13 @@ import com.francescopaoli.northstar.ui.theme.Neon
 
 /** Festa! Coriandoli continui, anelli che esplodono, badge con rimbalzo marcato. */
 @Composable
-fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit, onHome: () -> Unit) {
+fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit, onHome: () -> Unit, onUndo: () -> Unit = {}) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val g = goals.firstOrNull { it.id == id }
     val count = goals.count { it.status == GoalStatus.ACHIEVED }
+    // rete di sicurezza per i tocchi sbagliati: "Annulla" resta visibile 8 secondi
+    var canUndo by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(8_000); canUndo = false }
 
     NeonBackdrop(particles = 6, seed = 8) {
         ConfettiRain(Modifier.fillMaxSize())
@@ -88,6 +92,9 @@ fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit,
             ) {
                 GradientButton("Vedi i tuoi traguardi", onAchievements, Modifier.fillMaxWidth())
                 TextLink("Torna alla home", onHome, Modifier.fillMaxWidth())
+                androidx.compose.animation.AnimatedVisibility(canUndo, exit = androidx.compose.animation.fadeOut()) {
+                    TextLink("Annulla, non l'ho ancora raggiunto", onUndo, Modifier.fillMaxWidth(), color = Neon.Text3)
+                }
             }
         }
     }

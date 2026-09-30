@@ -82,6 +82,7 @@ fun DetailScreen(
     val g = goals.firstOrNull { it.id == id } ?: run { NeonBackdrop { }; return }
     var pickDate by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var confirmAchieve by remember { mutableStateOf(false) }
     val postponed = g.status == GoalStatus.POSTPONED
 
     NeonBackdrop(particles = 6, seed = 4) {
@@ -154,8 +155,9 @@ fun DetailScreen(
                     Modifier.navigationBarsPadding().padding(start = 22.dp, end = 22.dp, bottom = 16.dp, top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
+                    // due azioni della stessa taglia, sobrie: niente tocchi per sbaglio su "raggiunto"
                     GhostButton("Posticipa", { pickDate = true }, Modifier.weight(1f))
-                    GradientButton("Segna come raggiunto", { vm.achieve(g.id); onAchieved() }, Modifier.weight(1.4f))
+                    AchieveButton({ confirmAchieve = true }, Modifier.weight(1f))
                 }
             }
         }
@@ -165,6 +167,16 @@ fun DetailScreen(
         initial = maxOf(g.deadline, java.time.LocalDate.now()).plusWeeks(2),
         onPick = { vm.postpone(g.id, it); pickDate = false },
         onDismiss = { pickDate = false },
+    )
+    if (confirmAchieve) AlertDialog(
+        onDismissRequest = { confirmAchieve = false },
+        containerColor = Neon.Surface,
+        title = { Text("L'hai davvero raggiunto?") },
+        text = { Text("\"${g.title}\" passerà nei Traguardi.", color = Neon.Text2) },
+        confirmButton = {
+            TextButton({ confirmAchieve = false; vm.achieve(g.id); onAchieved() }) { Text("Sì, raggiunto!", color = Neon.Cyan) }
+        },
+        dismissButton = { TextButton({ confirmAchieve = false }) { Text("Non ancora", color = Neon.Text2) } },
     )
     if (confirmDelete) AlertDialog(
         onDismissRequest = { confirmDelete = false },
@@ -261,5 +273,22 @@ private fun AnswersCard(g: Goal, modifier: Modifier) {
                 }
             }
         }
+    }
+}
+
+/** "Raggiunto" in versione sobria: bordo ciano sottile, testo piccolo. */
+@Composable
+private fun AchieveButton(onClick: () -> Unit, modifier: Modifier) {
+    Row(
+        modifier
+            .clip(RoundedCornerShape(14.dp))
+            .border(1.5.dp, Neon.Cyan.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(NsIcons.Check, null, tint = Neon.Cyan, modifier = Modifier.size(15.dp))
+        Text("  Raggiunto", color = Neon.Cyan, fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
     }
 }

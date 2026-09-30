@@ -40,6 +40,7 @@ import com.francescopaoli.northstar.ui.screens.HomeScreen
 import com.francescopaoli.northstar.ui.screens.LoginScreen
 import com.francescopaoli.northstar.ui.screens.NewGoalScreen
 import com.francescopaoli.northstar.ui.screens.SettingsScreen
+import com.francescopaoli.northstar.ui.screens.WeekSummaryScreen
 import com.francescopaoli.northstar.ui.theme.Neon
 
 @Composable
@@ -94,6 +95,7 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
                     onOpen = { nav.navigate(Routes.detail(it)) },
                     onCalendar = { nav.navigate(Routes.CALENDAR) },
                     onTab = { nav.goTab(it) },
+                    onWeek = { nav.navigate(Routes.WEEK) },
                 )
             }
             composable(Routes.NEW) {
@@ -126,15 +128,20 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
                 )
             }
             composable(Routes.CELEBRATE) { e ->
+                val id = e.arguments?.getString("id").orEmpty()
                 CelebrationScreen(
-                    vm, e.arguments?.getString("id").orEmpty(),
+                    vm, id,
                     onAchievements = { nav.navigate(Routes.ACHIEVEMENTS) { popUpTo(Routes.HOME) } },
                     onHome = { nav.popBackStack(Routes.HOME, false) },
+                    onUndo = { vm.undoAchieve(id); nav.navigate(Routes.detail(id)) { popUpTo(Routes.HOME) } },
                 )
             }
             composable(Routes.ACHIEVEMENTS) { AchievementsScreen(vm, onBack = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) }) }
             composable(Routes.CALENDAR) {
                 CalendarConnectScreen(vm, onDone = { if (!nav.popBackStack(Routes.HOME, false)) nav.navigate(Routes.HOME) })
+            }
+            composable(Routes.WEEK) {
+                WeekSummaryScreen(vm, onClose = { if (!nav.popBackStack(Routes.HOME, false)) nav.navigate(Routes.HOME) })
             }
             composable(Routes.SETTINGS) {
                 SettingsScreen(vm, onTab = { nav.goTab(it) }, onConnectCalendar = { nav.navigate(Routes.CALENDAR) })

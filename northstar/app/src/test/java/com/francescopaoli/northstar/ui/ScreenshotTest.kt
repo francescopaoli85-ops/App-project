@@ -22,6 +22,7 @@ import com.francescopaoli.northstar.ui.screens.HomeScreen
 import com.francescopaoli.northstar.ui.screens.LoginScreen
 import com.francescopaoli.northstar.ui.screens.NewGoalScreen
 import com.francescopaoli.northstar.ui.screens.SettingsScreen
+import com.francescopaoli.northstar.ui.screens.WeekSummaryScreen
 import com.francescopaoli.northstar.ui.theme.NorthstarTheme
 import com.github.takahirom.roborazzi.captureRoboImage
 import kotlinx.coroutines.runBlocking
@@ -54,7 +55,13 @@ class ScreenshotTest {
         ),
         summary = "Entro il 24 novembre presenterò il piano del negozio: tre azioni già avviate — lo saprò quando il team lo approva.",
         deadlineEpochDay = LocalDate.now().plusDays(12).toEpochDay(),
-        actions = List(7) { GoalAction(id = "a$it", text = "Azione ${it + 1}", done = it < 5) },
+        actions = List(7) {
+            GoalAction(
+                id = "a$it", text = listOf("Raccogliere i numeri di cassa", "Bozza del piano", "Parlare con Luca",
+                    "Rivedere i costi", "Prova con il team", "Preparare le slide", "Presentazione")[it],
+                done = it < 5, doneAt = if (it < 5) System.currentTimeMillis() - (4 - it) * 7L * 86_400_000 else null,
+            )
+        },
     )
     private val run = Goal(
         id = "run", area = Area.SALUTE, answers = mapOf(Criterion.POSITIVO to "Correre 5 km senza fermarmi"),
@@ -100,4 +107,5 @@ class ScreenshotTest {
     @Test fun checkin() = shot("07_checkin") { CheckinScreen(vm, "work", {}, {}) }
     @Test fun celebration() = shot("08_celebrazione") { CelebrationScreen(vm, "books", {}, {}) }
     @Test fun settings() = shot("09_impostazioni") { SettingsScreen(vm, {}, {}) }
+    @Test fun week() = shot("10_riepilogo_settimana") { WeekSummaryScreen(vm) {} }
 }

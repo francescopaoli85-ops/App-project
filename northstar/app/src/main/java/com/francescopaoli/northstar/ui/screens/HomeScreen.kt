@@ -1,5 +1,8 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.domain.Engagement
+import com.francescopaoli.northstar.ui.components.FlameIcon
+import com.francescopaoli.northstar.ui.components.WeeklyStepRow
 import com.francescopaoli.northstar.ads.AdPlacement
 import com.francescopaoli.northstar.ads.NativeAdCard
 import android.Manifest
@@ -61,6 +64,7 @@ fun HomeScreen(
     onOpen: (String) -> Unit,
     onCalendar: () -> Unit,
     onTab: (Tab) -> Unit,
+    onWeek: () -> Unit = {},
 ) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
@@ -77,6 +81,8 @@ fun HomeScreen(
     // prima quelli arrivati a scadenza, poi per data
     val open = goals.filter { it.isOpen }.sortedWith(compareBy({ !it.isDue() }, { it.deadlineEpochDay }))
     val achieved = goals.count { it.status == GoalStatus.ACHIEVED }
+    val streak = Engagement.streakWeeks(goals)
+    val doneThisWeek = Engagement.doneThisWeek(goals)
 
     NeonBackdrop(particles = 8, seed = 2) {
         Twinkles()
@@ -98,6 +104,7 @@ fun HomeScreen(
                         Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
                             Stat(open.size, "attivi", Neon.Lilac, Modifier.pop(300))
                             Stat(achieved, "raggiunti", Neon.Cyan, Modifier.pop(400))
+                            StreakStat(streak, Modifier.pop(500), onWeek)
                         }
                     }
                 }
@@ -110,6 +117,16 @@ fun HomeScreen(
                 // il collegamento al calendario si propone solo dopo il primo obiettivo
                 if (!settings.calendarConnected && goals.isNotEmpty()) {
                     item { CalendarBanner(onCalendar, Modifier.enter(0, baseDelayMs = 150)) }
+                }
+                if (open.isNotEmpty()) {
+                    item(key = "week") {
+                        ThisWeekCard(
+                            open, doneThisWeek.map { it.second.id }.toSet(),
+                            onToggle = { g, a -> vm.toggleAction(g, a) },
+                            onPick = onOpen, onWeek = onWeek,
+                            modifier = Modifier.enter(0, baseDelayMs = 250),
+                        )
+                    }
                 }
                 if (open.isEmpty()) {
                     item { EmptyState(Modifier.enter(1)) }
@@ -189,5 +206,58 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onClick: () -> Unit) {
             Text(sub, color = if (g.isDue()) Neon.Cyan else Neon.Text3, fontSize = 11.5.sp, modifier = Modifier.padding(top = 4.dp))
         }
         Text("$pct%", color = if (postponed) Neon.Text3 else Neon.Lilac, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+/** Fiammella + "N sett. di fila": tocca per il riepilogo della settimana. */
+@Composable
+private fun StreakStat(weeks: Int, modifier: Modifier, onClick: () -> Unit) {
+    Row(
+        modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(end = 4.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        FlameIcon(22.dp, lit = weeks > 0, modifier = Modifier.padding(bottom = 3.dp))
+        Text(" $weeks", color = if (weeks > 0) Color(0xFFFFB547) else Neon.Text3, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
+        Text(
+            if (weeks == 1) " settimana" else " sett. di fila",
+            color = Neon.Text2, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 4.dp),
+        )
+    }
+}
+
+/**
+ * "Questa settimana": un piccolo passo per ogni obiettivo aperto, da spuntare al volo.
+ * È il motivo per tornare nell'app qualche volta a settimana.
+ */
+@Composable
+private fun ThisWeekCard(
+    open: List<Goal>,
+    doneIds: Set<String>,
+    onToggle: (goalId: String, actionId: String) -> Unit,
+    onPick: (goalId: String) -> Unit,
+    onWeek: () -> Unit,
+    modifier: Modifier,
+) {
+    com.francescopaoli.northstar.ui.components.NeonColumnCard(modifier.fillMaxWidth().padding(top = 4.dp), corner = 17.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("QUESTA SETTIMANA", color = Neon.Lilac, style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+            Text("Riepilogo", color = Neon.Cyan, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onWeek).padding(4.dp))
+        }
+        Text(
+            if (doneIds.isEmpty()) "Un passo piccolo basta per tenere viva la serie." else "Ottimo: ${doneIds.size} ${if (doneIds.size == 1) "passo fatto" else "passi fatti"} questa settimana.",
+            color = Neon.Text2, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp),
+        )
+        open.take(3).forEachIndexed { i, g ->
+            // se questa settimana ha già fatto un passo per l'obiettivo, lo mostro spuntato
+            val doneHere = g.actions.lastOrNull { it.id in doneIds }
+            val step = doneHere ?: Engagement.weeklyStep(g)
+            WeeklyStepRow(
+                goalTitle = g.title, step = step?.text, done = doneHere != null,
+                onToggle = { step?.let { onToggle(g.id, it.id) } },
+                onPick = { onPick(g.id) },
+                modifier = Modifier.enter(i, 70, 350),
+            )
+        }
     }
 }

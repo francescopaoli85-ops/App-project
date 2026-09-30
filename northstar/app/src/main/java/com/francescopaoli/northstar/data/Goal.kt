@@ -53,6 +53,8 @@ data class GoalAction(
     val id: String = UUID.randomUUID().toString(),
     val text: String,
     val done: Boolean = false,
+    /** Momento in cui è stata spuntata: serve per "passo della settimana" e serie. */
+    val doneAt: Long? = null,
 )
 
 data class Goal(
