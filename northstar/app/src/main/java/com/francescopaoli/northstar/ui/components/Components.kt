@@ -1,5 +1,13 @@
 package com.francescopaoli.northstar.ui.components
 
+import android.os.Build
+import androidx.compose.ui.graphics.Shape
+import com.francescopaoli.northstar.ui.fx.LocalFx
+import com.francescopaoli.northstar.ui.fx.LocalHaze
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeChild
+import kotlin.math.roundToInt
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -53,6 +61,24 @@ import com.francescopaoli.northstar.ui.fx.floatY
 import com.francescopaoli.northstar.ui.fx.glow
 import com.francescopaoli.northstar.ui.fx.shimmer
 import com.francescopaoli.northstar.ui.theme.Neon
+
+/** Bordo "di vetro": più luminoso in alto a sinistra, come se prendesse luce. */
+val GlassEdge = Brush.linearGradient(listOf(Color.White.copy(alpha = 0.18f), Neon.Violet.copy(alpha = 0.34f), Neon.Violet.copy(alpha = 0.10f)))
+
+/**
+ * Vetro smerigliato: sfoca davvero la nebulosa che c'è dietro (Android 12+).
+ * Con effetti ridotti o Android più vecchi: superficie scura piena come prima.
+ */
+@Composable
+fun Modifier.glass(shape: Shape, tint: Color = Neon.Surface.copy(alpha = 0.58f), solid: Color = Neon.Surface): Modifier {
+    val haze = LocalHaze.current
+    return if (haze != null && LocalFx.current.full && Build.VERSION.SDK_INT >= 31) {
+        this.clip(shape).hazeChild(
+            haze,
+            HazeStyle(backgroundColor = Neon.Night, tint = HazeTint(tint), blurRadius = 26.dp, noiseFactor = 0.05f),
+        )
+    } else this.clip(shape).background(solid)
+}
 
 /** Effetto pressione: il bottone si "schiaccia" un attimo. */
 @Composable
@@ -128,11 +154,10 @@ fun NeonCard(
     val shape = RoundedCornerShape(corner)
     Row(
         modifier
-            .clip(shape)
-            .background(Neon.Surface)
+            .glass(shape)
             .then(
                 if (dashed) Modifier.dashedBorder(Neon.Text2.copy(alpha = 0.35f), corner)
-                else Modifier.border(1.dp, Neon.Violet.copy(alpha = 0.32f), shape),
+                else Modifier.border(1.dp, GlassEdge, shape),
             )
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(padding),
@@ -146,7 +171,7 @@ fun NeonCard(
 fun NeonColumnCard(modifier: Modifier = Modifier, corner: Dp = 18.dp, content: @Composable ColumnScope.() -> Unit) {
     val shape = RoundedCornerShape(corner)
     Column(
-        modifier.clip(shape).background(Neon.Surface).border(1.dp, Neon.Violet.copy(alpha = 0.3f), shape).padding(18.dp),
+        modifier.glass(shape).border(1.dp, GlassEdge, shape).padding(18.dp),
         content = content,
     )
 }
@@ -166,6 +191,7 @@ fun ProgressRing(
     labelSize: TextUnit = 16.sp,
     delayMs: Int = 0,
     glowing: Boolean = false,
+    showPercent: Boolean = false,
 ) {
     val anim = remember { Animatable(0f) }
     // bagliore pulsante sul solo tratto colorato (drop-shadow del mockup), mai sul centro
@@ -193,7 +219,8 @@ fun ProgressRing(
             }
             drawArc(brush, -90f, sweep, false, Offset(inset, inset), arcSize, style = Stroke(sw, cap = StrokeCap.Round))
         }
-        if (label != null) Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = labelSize)
+        val text = label ?: if (showPercent) "${(anim.value * 100).roundToInt()}%" else null
+        if (text != null) Text(text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = labelSize)
     }
 }
 
@@ -253,7 +280,7 @@ fun BottomNav(selected: Tab, onSelect: (Tab) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .background(Neon.NavBar)
+            .glass(RoundedCornerShape(0.dp), tint = Neon.NavBar.copy(alpha = 0.7f), solid = Neon.NavBar)
             .border(width = 1.dp, color = Neon.Violet.copy(alpha = 0.22f), shape = RoundedCornerShape(0.dp))
             .navigationBarsPadding()
             .padding(vertical = 10.dp),

@@ -26,6 +26,8 @@ data class Settings(
     val localName: String? = null,
     /** Ha acquistato "Rimuovi pubblicità". */
     val adFree: Boolean = false,
+    /** Meno effetti grafici: niente shader, parallasse e scintille (risparmia batteria). */
+    val reducedEffects: Boolean = false,
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -40,6 +42,7 @@ class SettingsStore(private val context: Context) {
         val checkins = booleanPreferencesKey("checkins")
         val localName = stringPreferencesKey("local_name")
         val adFree = booleanPreferencesKey("ad_free")
+        val reducedFx = booleanPreferencesKey("reduced_fx")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -55,6 +58,7 @@ class SettingsStore(private val context: Context) {
         checkins = this[K.checkins] ?: true,
         localName = this[K.localName],
         adFree = this[K.adFree] ?: false,
+        reducedEffects = this[K.reducedFx] ?: false,
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -75,6 +79,7 @@ class SettingsStore(private val context: Context) {
     suspend fun lastSent(tag: String): Long? = context.dataStore.data.first()[longPreferencesKey("sent_$tag")]
     suspend fun markSent(tag: String, period: Long) = context.dataStore.edit { it[longPreferencesKey("sent_$tag")] = period }
 
+    suspend fun setReducedEffects(v: Boolean) = context.dataStore.edit { it[K.reducedFx] = v }
     suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {
         if (v == null) it.remove(K.localName) else it[K.localName] = v

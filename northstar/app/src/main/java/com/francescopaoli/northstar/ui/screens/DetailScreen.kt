@@ -1,5 +1,11 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ui.fx.LocalSparks
+import com.francescopaoli.northstar.ui.fx.sharedElementOf
+import com.francescopaoli.northstar.ui.fx.sharedTextOf
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import com.francescopaoli.northstar.ads.NativeAdCard
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -105,12 +111,12 @@ fun DetailScreen(
                     },
                 )
                 Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    ProgressRing(g.progress, 78.dp, 7.dp, muted = postponed, label = "${(g.progress * 100).toInt()}%",
-                        glowing = true)
+                    ProgressRing(g.progress, 78.dp, 7.dp, muted = postponed, showPercent = true,
+                        glowing = true, modifier = Modifier.sharedElementOf("ring-${g.id}"))
                     Column {
                         Chip(g.area.label, Modifier.pop(150), filled = true)
                         Text(g.title, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 23.sp,
-                            modifier = Modifier.padding(top = 6.dp).enter(0))
+                            modifier = Modifier.padding(top = 6.dp).sharedTextOf("title-${g.id}"))
                         Text(
                             if (postponed) "Nuova data: ${SummaryBuilder.formatDate(g.deadline)} · ci si riprova, con calma"
                             else "Scadenza: ${SummaryBuilder.formatDate(g.deadline)}",
@@ -234,13 +240,19 @@ private fun ActionsCard(g: Goal, vm: MainViewModel, modifier: Modifier) {
 @Composable
 private fun ActionRow(a: GoalAction, modifier: Modifier, onToggle: () -> Unit, onRemove: () -> Unit) {
     val box by animateColorAsState(if (a.done) Neon.Cyan else Color.Transparent, label = "c")
+    val sparks = LocalSparks.current
+    var boxCenter by remember { mutableStateOf(Offset.Zero) }
     Row(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = Role.Checkbox, onClick = onToggle).padding(vertical = 6.dp),
+        modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+            // spunta = esplosione di scintille dalla casella
+            .clickable(role = Role.Checkbox) { if (!a.done) sparks?.emit(boxCenter, big = true); onToggle() }
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Box(
-            Modifier.size(20.dp).clip(RoundedCornerShape(6.dp)).background(box).border(1.5.dp, Neon.Cyan, RoundedCornerShape(6.dp)),
+            Modifier.size(20.dp).onGloballyPositioned { boxCenter = it.boundsInRoot().center }
+                .clip(RoundedCornerShape(6.dp)).background(box).border(1.5.dp, Neon.Cyan, RoundedCornerShape(6.dp)),
             contentAlignment = Alignment.Center,
         ) { if (a.done) Icon(NsIcons.Check, null, tint = Neon.Night, modifier = Modifier.size(13.dp).pop()) }
         Text(

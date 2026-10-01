@@ -85,6 +85,20 @@ domande indirette ("le programmi nel dettaglio o le fai quando capita?"). `Perso
 lessico, livello di dettaglio e ripensamenti: chi ama controllare → eventi calendario **con conferma**,
 chi delega → **automatici**. Sempre modificabile in Impostazioni.
 
+**Effetti grafici.** Libreria in `ui/fx/`:
+- nebulosa animata con shader AGSL (Android 13+, calcolata a mezza risoluzione) e campo di stelle a 3 profondità con stelle cadenti;
+- parallasse dal giroscopio (solo con l'app in primo piano);
+- card, header e barra in basso di vetro smerigliato (Haze, Android 12+);
+- scintille a ogni tocco, esplosione quando si spunta un passo;
+- anello e titolo che volano dalla Home al Dettaglio (shared element);
+- salto nell'iperspazio al salvataggio, sfera liquida del microfono, numeri che contano;
+- Celebrazione con fuochi d'artificio e coriandoli fisici e onda d'urto (shader).
+
+Sotto Android 12/13 si usano versioni semplificate. "Effetti ridotti" in Impostazioni (e "Rimuovi animazioni" di sistema)
+spegne shader, vetro, parallasse e scintille per risparmiare batteria.
+Gli screenshot dei test (`app/build/outputs/roborazzi/`) disegnano in software: lì la nebulosa usa la versione semplice,
+mentre gli shader sono verificati da `ShaderCompileTest`.
+
 **Interruzione vocale.** Mentre la guida parla, `BargeInDetector` ascolta il microfono con la
 cancellazione d'eco del telefono: appena rileva la tua voce zittisce la guida e parte il riconoscimento.
 Dipende dalla qualità dell'eco-cancellazione del dispositivo: con l'altoparlante a volume alto su

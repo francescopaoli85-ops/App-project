@@ -1,5 +1,12 @@
 package com.francescopaoli.northstar.ui.components
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import com.francescopaoli.northstar.ui.fx.LocalSparks
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -71,18 +78,24 @@ fun WeeklyStepRow(
     modifier: Modifier = Modifier,
 ) {
     val box by animateColorAsState(if (done) Neon.Cyan else Color.Transparent, label = "c")
+    val sparks = LocalSparks.current
+    var boxCenter by remember { mutableStateOf(Offset.Zero) }
     Row(
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable(role = if (step != null) Role.Checkbox else Role.Button, onClick = if (step != null) onToggle else onPick)
+            .clickable(
+                role = if (step != null) Role.Checkbox else Role.Button,
+                onClick = if (step == null) onPick else { { if (!done) sparks?.emit(boxCenter, big = true); onToggle() } },
+            )
             .padding(vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(11.dp),
     ) {
         if (step != null) {
             Box(
-                Modifier.size(22.dp).clip(RoundedCornerShape(7.dp)).background(box)
+                Modifier.size(22.dp).onGloballyPositioned { boxCenter = it.boundsInRoot().center }
+                    .clip(RoundedCornerShape(7.dp)).background(box)
                     .border(1.5.dp, Neon.Cyan, RoundedCornerShape(7.dp)),
                 contentAlignment = Alignment.Center,
             ) { if (done) Icon(NsIcons.Check, null, tint = Neon.Night, modifier = Modifier.size(14.dp).pop()) }

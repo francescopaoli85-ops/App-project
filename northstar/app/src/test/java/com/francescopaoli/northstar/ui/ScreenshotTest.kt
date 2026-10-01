@@ -2,6 +2,8 @@ package com.francescopaoli.northstar.ui
 
 import android.app.Application
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
@@ -90,11 +92,16 @@ class ScreenshotTest {
     }
 
     /** Monta la schermata, lascia correre le animazioni d'ingresso e scatta. */
-    private fun shot(name: String, content: @Composable () -> Unit) {
+    private fun shot(name: String, atMs: Long = 2_500, content: @Composable () -> Unit) {
         compose.mainClock.autoAdvance = false
-        compose.setContent { NorthstarTheme { content() } }
+        compose.setContent {
+            // nei test il disegno è software: niente shader (la nebulosa è verificata a parte)
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.francescopaoli.northstar.ui.fx.LocalFx provides com.francescopaoli.northstar.ui.fx.FxConfig(full = true, shaders = false),
+            ) { NorthstarTheme { content() } }
+        }
         compose.waitUntil(5_000) { vm.goals.value.isNotEmpty() }
-        compose.mainClock.advanceTimeBy(2_500)
+        compose.mainClock.advanceTimeBy(atMs)
         compose.onRoot().captureRoboImage("build/outputs/roborazzi/$name.png")
     }
 
@@ -108,4 +115,16 @@ class ScreenshotTest {
     @Test fun celebration() = shot("08_celebrazione") { CelebrationScreen(vm, "books", {}, {}) }
     @Test fun settings() = shot("09_impostazioni") { SettingsScreen(vm, {}, {}) }
     @Test fun week() = shot("10_riepilogo_settimana") { WeekSummaryScreen(vm) {} }
+    @Test fun warp() = shot("11_iperspazio", atMs = 950) {
+        com.francescopaoli.northstar.ui.fx.NeonBackdrop { com.francescopaoli.northstar.ui.fx.WarpOverlay(onFinished = {}) }
+    }
+    @Test fun orb() = shot("12_sfera_liquida", atMs = 1_200) {
+        com.francescopaoli.northstar.ui.fx.NeonBackdrop {
+            com.francescopaoli.northstar.ui.fx.LiquidOrb(
+                0.8f, true,
+                androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.Center).then(androidx.compose.ui.Modifier.size(220.dp)),
+            )
+        }
+    }
+    @Test fun celebrationLater() = shot("13_celebrazione_fuochi", atMs = 3_200) { CelebrationScreen(vm, "books", {}, {}) }
 }

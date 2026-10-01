@@ -91,6 +91,7 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                     Label("Esperienza")
                     Toggle("Voce guida nelle domande", s.voiceGuide, vm::setVoice)
                     Toggle("Check-in periodici", s.checkins, vm::setCheckins)
+                    Toggle("Effetti ridotti (risparmia batteria)", s.reducedEffects, vm::setReducedEffects)
                 }
 
                 NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {

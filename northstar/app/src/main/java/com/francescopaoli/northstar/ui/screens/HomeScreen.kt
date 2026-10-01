@@ -1,5 +1,8 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ui.fx.animatedInt
+import com.francescopaoli.northstar.ui.fx.sharedElementOf
+import com.francescopaoli.northstar.ui.fx.sharedTextOf
 import com.francescopaoli.northstar.domain.Engagement
 import com.francescopaoli.northstar.ui.components.FlameIcon
 import com.francescopaoli.northstar.ui.components.WeeklyStepRow
@@ -145,7 +148,7 @@ fun HomeScreen(
 @Composable
 private fun Stat(n: Int, label: String, color: Color, modifier: Modifier) {
     Row(modifier, verticalAlignment = Alignment.Bottom) {
-        Text("$n", color = color, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
+        Text("${animatedInt(n, 800, 300)}", color = color, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
         Text(" $label", color = Neon.Text2, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 4.dp))
     }
 }
@@ -198,14 +201,16 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onClick: () -> Unit) {
         ProgressRing(
             g.progress, 42.dp, 4.5.dp, muted = postponed,
             glowing = true,
+            // vola fino all'header del Dettaglio
+            modifier = Modifier.sharedElementOf("ring-${g.id}"),
         )
         Column(Modifier.weight(1f)) {
             Text(g.area.label.uppercase(), color = Neon.Text2, style = MaterialTheme.typography.labelSmall)
             Text(g.title, color = Neon.Text, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, maxLines = 2,
-                overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
+                overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp).sharedTextOf("title-${g.id}"))
             Text(sub, color = if (g.isDue()) Neon.Cyan else Neon.Text3, fontSize = 11.5.sp, modifier = Modifier.padding(top = 4.dp))
         }
-        Text("$pct%", color = if (postponed) Neon.Text3 else Neon.Lilac, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text("${animatedInt(pct, 1100)}%", color = if (postponed) Neon.Text3 else Neon.Lilac, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -217,7 +222,7 @@ private fun StreakStat(weeks: Int, modifier: Modifier, onClick: () -> Unit) {
         verticalAlignment = Alignment.Bottom,
     ) {
         FlameIcon(22.dp, lit = weeks > 0, modifier = Modifier.padding(bottom = 3.dp))
-        Text(" $weeks", color = if (weeks > 0) Color(0xFFFFB547) else Neon.Text3, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
+        Text(" ${animatedInt(weeks, 900, 450)}", color = if (weeks > 0) Color(0xFFFFB547) else Neon.Text3, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
         Text(
             if (weeks == 1) " settimana" else " sett. di fila",
             color = Neon.Text2, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 4.dp),

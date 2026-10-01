@@ -1,6 +1,16 @@
 package com.francescopaoli.northstar.ui
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.CompositionLocalProvider
+import com.francescopaoli.northstar.ui.fx.FxConfig
+import com.francescopaoli.northstar.ui.fx.LocalFx
+import com.francescopaoli.northstar.ui.fx.LocalNavAnimScope
+import com.francescopaoli.northstar.ui.fx.LocalParallax
+import com.francescopaoli.northstar.ui.fx.LocalSharedScope
+import com.francescopaoli.northstar.ui.fx.SparkHost
+import com.francescopaoli.northstar.ui.fx.rememberParallax
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -46,6 +56,22 @@ import com.francescopaoli.northstar.ui.theme.Neon
 @Composable
 fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled: () -> Unit) {
     val vm: MainViewModel = viewModel(factory = MainViewModel.Factory(container))
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    // se nel sistema le animazioni sono disattivate, rispettiamo la scelta
+    val systemAnimOff = remember {
+        android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+    val fx = FxConfig(full = !settings.reducedEffects && !systemAnimOff)
+    val parallax = rememberParallax(fx.full)
+    CompositionLocalProvider(LocalFx provides fx, LocalParallax provides parallax) {
+        SparkHost(enabled = fx.full) { RootContent(vm, deepLink, onDeepLinkHandled) }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled: () -> Unit) {
     val session by vm.session.collectAsStateWithLifecycle()
     val confirm by vm.calendarConfirm.collectAsStateWithLifecycle()
     val message by vm.messages.collectAsStateWithLifecycle()
@@ -80,6 +106,8 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
     }
 
     Box(Modifier.fillMaxSize()) {
+      SharedTransitionLayout {
+       CompositionLocalProvider(LocalSharedScope provides this) {
         NavHost(
             nav, start,
             enterTransition = { fadeIn(tween(350)) + slideInVertically(tween(420)) { it / 12 } },
@@ -89,6 +117,7 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
         ) {
             composable(Routes.LOGIN) { LoginScreen(vm) }
             composable(Routes.HOME) {
+              CompositionLocalProvider(LocalNavAnimScope provides this) {
                 HomeScreen(
                     vm,
                     onNew = { nav.navigate(Routes.NEW) },
@@ -97,6 +126,7 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
                     onTab = { nav.goTab(it) },
                     onWeek = { nav.navigate(Routes.WEEK) },
                 )
+              }
             }
             composable(Routes.NEW) {
                 NewGoalScreen(
@@ -112,12 +142,14 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
             }
             composable(Routes.DETAIL) { e ->
                 val id = e.arguments?.getString("id").orEmpty()
+              CompositionLocalProvider(LocalNavAnimScope provides this) {
                 DetailScreen(
                     vm, id,
                     onBack = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) },
                     onCheckin = { nav.navigate(Routes.checkin(id)) },
                     onAchieved = { nav.navigate(Routes.celebrate(id)) { popUpTo(Routes.HOME) } },
                 )
+              }
             }
             composable(Routes.CHECKIN) { e ->
                 val id = e.arguments?.getString("id").orEmpty()
@@ -147,6 +179,9 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
                 SettingsScreen(vm, onTab = { nav.goTab(it) }, onConnectCalendar = { nav.navigate(Routes.CALENDAR) })
             }
         }
+
+       }
+      }
 
         SnackbarHost(snack, Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(16.dp)) {
             Snackbar(it, containerColor = Neon.SurfaceHi, contentColor = Neon.Text)

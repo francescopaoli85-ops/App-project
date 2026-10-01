@@ -1,5 +1,6 @@
 package com.francescopaoli.northstar.ui.screens
 
+import dev.chrisbanes.haze.hazeChild
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,7 +49,7 @@ fun HeaderBand(
     Box(
         modifier
             .fillMaxWidth()
-            .background(Neon.headerBrush)
+            .glassHeader()
     ) {
         BlobLayer(listOf(blob), Modifier.matchParentSize())
         ParticleField(5, Modifier.matchParentSize(), seed = 11)
@@ -135,4 +136,20 @@ fun NeonDatePicker(initial: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: (
         },
         dismissButton = { TextButton(onDismiss) { Text("Annulla", color = Neon.Text2) } },
     ) { DatePicker(state, colors = colors, title = null, showModeToggle = false) }
+}
+
+/** Header di vetro: la nebulosa ci scorre dietro sfocata; senza vetro, il gradiente scuro. */
+@Composable
+private fun Modifier.glassHeader(): Modifier {
+    val haze = com.francescopaoli.northstar.ui.fx.LocalHaze.current
+    return if (haze != null && com.francescopaoli.northstar.ui.fx.LocalFx.current.full && android.os.Build.VERSION.SDK_INT >= 31) {
+        this.hazeChild(
+            haze,
+            dev.chrisbanes.haze.HazeStyle(
+                backgroundColor = Neon.Night,
+                tint = dev.chrisbanes.haze.HazeTint(Neon.SurfaceHi.copy(alpha = 0.5f)),
+                blurRadius = 30.dp, noiseFactor = 0.05f,
+            ),
+        )
+    } else this.background(Neon.headerBrush)
 }

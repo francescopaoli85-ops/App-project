@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.unit.IntOffset
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -36,15 +41,23 @@ import kotlin.random.Random
  * Tutti disegnati su Canvas guidati da un unico orologio, così restano leggeri.
  */
 
-/** Secondi trascorsi, aggiornati a ogni frame. */
+/**
+ * Secondi trascorsi, aggiornati a ogni frame.
+ * Si usa con `val t by rememberClock()` e si legge DENTRO il blocco di disegno:
+ * così ogni frame ridisegna soltanto, senza ricomporre la schermata.
+ */
 @Composable
-fun rememberClock(): Float {
+fun rememberClock(fps: Int = 60): androidx.compose.runtime.State<Float> {
     val t = remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(fps) {
         val start = withFrameMillis { it }
-        while (true) withFrameMillis { t.floatValue = (it - start) / 1000f }
+        val step = 1000L / fps
+        var last = 0L
+        while (true) withFrameMillis {
+            if (it - last >= step - 2) { last = it; t.floatValue = (it - start) / 1000f }
+        }
     }
-    return t.floatValue
+    return t
 }
 
 private val palette = listOf(Neon.Cyan, Neon.Lilac, Neon.Violet)
@@ -64,16 +77,31 @@ fun NeonBackdrop(
     seed: Int = 1,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val fx = LocalFx.current
+    val haze = remember { HazeState() }
+    val parallax = LocalParallax.current
     Box(modifier.fillMaxSize().background(Neon.Night)) {
-        BlobLayer(blobs)
-        ParticleField(particles, Modifier.fillMaxSize(), seed)
-        content()
+        // tutto lo sfondo è la sorgente del "vetro": le card ci sfocano sopra
+        Box(Modifier.fillMaxSize().haze(haze)) {
+            NebulaLayer(seed, blobs)
+            if (fx.full) BlobLayer(blobs.map { it.copy(alpha = it.alpha * 0.55f) })
+            StarField(seed, if (fx.full) 70 else 30)
+            ParticleField(
+                if (fx.full) particles else particles / 2,
+                Modifier.fillMaxSize().offset {
+                    // particelle = livello più vicino: parallasse più forte
+                    IntOffset((parallax.value.x * 28.dp.toPx()).toInt(), (parallax.value.y * 28.dp.toPx()).toInt())
+                },
+                seed,
+            )
+        }
+        CompositionLocalProvider(LocalHaze provides haze) { content() }
     }
 }
 
 @Composable
 fun BlobLayer(blobs: List<Blob>, modifier: Modifier = Modifier.fillMaxSize()) {
-    val t = rememberClock()
+    val t by rememberClock()
     // dentro un header va passato Modifier.matchParentSize(): fillMaxSize lo allargherebbe a tutto lo schermo
     Canvas(modifier) {
         blobs.forEachIndexed { i, b ->
@@ -112,7 +140,7 @@ fun ParticleField(count: Int, modifier: Modifier = Modifier, seed: Int = 1) {
             )
         }
     }
-    val t = rememberClock()
+    val t by rememberClock()
     Canvas(modifier) {
         ps.forEach { p ->
             val k = (sin(2 * PI * (t + p.phase) / p.period).toFloat() + 1f) / 2f
@@ -138,7 +166,7 @@ fun ConfettiRain(modifier: Modifier = Modifier, count: Int = 26) {
                 3f + rnd.nextFloat() * 1.5f, rnd.nextFloat() * 3f, 360f + rnd.nextFloat() * 360f)
         }
     }
-    val t = rememberClock()
+    val t by rememberClock()
     Canvas(modifier) {
         pieces.forEach { p ->
             val prog = (((t + p.delay) % p.period) / p.period)
@@ -162,7 +190,7 @@ fun RisingSparks(modifier: Modifier = Modifier, count: Int = 12) {
         List(count) { Piece(rnd.nextFloat(), 3f + rnd.nextFloat() * 3f, rnd.nextBoolean(), palette[rnd.nextInt(3)],
             4.5f + rnd.nextFloat() * 1.5f, rnd.nextFloat() * 5f, 0f) }
     }
-    val t = rememberClock()
+    val t by rememberClock()
     Canvas(modifier) {
         sparks.forEach { p ->
             val prog = ((t + p.delay) % p.period) / p.period
@@ -178,7 +206,7 @@ fun RisingSparks(modifier: Modifier = Modifier, count: Int = 12) {
 /** Anelli che esplodono verso l'esterno, in loop. */
 @Composable
 fun BurstRings(modifier: Modifier = Modifier, colors: List<Color> = listOf(Neon.Violet, Neon.Cyan, Neon.Lilac)) {
-    val t = rememberClock()
+    val t by rememberClock()
     Canvas(modifier) {
         colors.forEachIndexed { i, c ->
             val prog = ((t + i * 0.4f) % 1.2f) / 1.2f
@@ -194,7 +222,7 @@ fun BurstRings(modifier: Modifier = Modifier, colors: List<Color> = listOf(Neon.
 /** Onde di pulsazione attorno al microfono. */
 @Composable
 fun PulseRings(active: Boolean, modifier: Modifier = Modifier) {
-    val t = rememberClock()
+    val t by rememberClock()
     Canvas(modifier) {
         if (!active) return@Canvas
         listOf(Neon.Violet to 0f, Neon.Cyan to 0.3f).forEach { (c, d) ->
@@ -208,7 +236,7 @@ fun PulseRings(active: Boolean, modifier: Modifier = Modifier) {
 /** Stelle che orbitano lentamente (schermata di apertura). */
 @Composable
 fun OrbitStars(modifier: Modifier = Modifier) {
-    val t = rememberClock()
+    val t by rememberClock()
     Canvas(modifier) {
         val c = center
         orbit(t / 9f, c, size.minDimension * 0.42f, listOf(0f to Neon.Cyan, 2.2f to Neon.Lilac), t)

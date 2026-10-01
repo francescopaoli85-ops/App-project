@@ -1,5 +1,8 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ui.fx.LiquidOrb
+import com.francescopaoli.northstar.ui.fx.LocalFx
+import com.francescopaoli.northstar.ui.fx.WarpOverlay
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -96,6 +99,10 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
     val scope = rememberCoroutineScope()
     var saving by remember { mutableStateOf(false) }
     var pickDate by remember { mutableStateOf(false) }
+    val fullFx = LocalFx.current.full
+    // salvataggio in corso + "salto nell'iperspazio" (si naviga quando finiscono entrambi)
+    var warp by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var firstGoal by remember { mutableStateOf(false) }
 
     // microfono: se negato o non disponibile si passa al testo
     val micPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
@@ -190,10 +197,9 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                             else if (!saving) {
                                 saving = true
                                 val first = vm.goals.value.isEmpty()
-                                scope.launch {
-                                    vm.createGoal(ng.area, ng.answers.toMap(), ng.deadline, ng.revisions)
-                                    onCreated(first)
-                                }
+                                val job = scope.launch { vm.createGoal(ng.area, ng.answers.toMap(), ng.deadline, ng.revisions) }
+                                if (fullFx) { firstGoal = first; warp = job }
+                                else scope.launch { job.join(); onCreated(first) }
                             }
                         },
                         modifier = Modifier.weight(1.4f),
@@ -201,6 +207,9 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                     )
                 }
             }
+        }
+        warp?.let { job ->
+            WarpOverlay(onFinished = { scope.launch { job.join(); onCreated(firstGoal) } })
         }
     }
 
@@ -290,13 +299,12 @@ private fun VoiceInput(
             Canvas(Modifier.size(116.dp).spin(20000)) {
                 drawCircle(Color(0xFF4A3F82).copy(alpha = 0.6f), style = Stroke(1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 14f))))
             }
+            // sfera liquida: si deforma con la voce
+            LiquidOrb(level, listening, Modifier.size(150.dp))
             Box(
                 Modifier
                     .size(84.dp)
-                    .then(if (listening) Modifier.breathe(1.08f, 900) else Modifier)
-                    .glow(42.dp, blur = 24.dp, durationMs = if (listening) 900 else 1800)
                     .clip(CircleShape)
-                    .animatedGradient(42.dp, durationMs = 2200)
                     .clickable(role = Role.Button, onClickLabel = "Parla", onClick = onMic),
                 contentAlignment = Alignment.Center,
             ) { Icon(NsIcons.Mic, "Microfono", tint = Color.White, modifier = Modifier.size(28.dp)) }

@@ -1,5 +1,6 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ui.fx.animatedInt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -120,7 +121,7 @@ fun WeekSummaryScreen(vm: MainViewModel, onClose: () -> Unit) {
 @Composable
 private fun BigStat(value: String, label: String, color: Color, modifier: Modifier) {
     NeonColumnCard(modifier, corner = 14.dp) {
-        Text(value, color = color, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
+        Text("${animatedInt(value.toIntOrNull() ?: 0, 1000, 350)}", color = color, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
         Text(label, color = Neon.Text2, fontSize = 11.sp)
     }
 }

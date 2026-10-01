@@ -1,5 +1,9 @@
 package com.francescopaoli.northstar.ui.screens
 
+import com.francescopaoli.northstar.ui.fx.Fireworks
+import com.francescopaoli.northstar.ui.fx.LocalFx
+import com.francescopaoli.northstar.ui.fx.PhysicsConfetti
+import com.francescopaoli.northstar.ui.fx.shockwave
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -54,8 +58,13 @@ fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit,
     var canUndo by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(8_000); canUndo = false }
 
-    NeonBackdrop(particles = 6, seed = 8) {
-        ConfettiRain(Modifier.fillMaxSize())
+    val fullFx = LocalFx.current.full
+    // l'onda d'urto parte dalla stella e deforma tutto lo schermo, nebulosa compresa
+    NeonBackdrop(modifier = Modifier.shockwave(cy = 0.36f), particles = 6, seed = 8) {
+        if (fullFx) {
+            Fireworks(Modifier.fillMaxSize())
+            PhysicsConfetti(Modifier.fillMaxSize(), burstCenter = androidx.compose.ui.geometry.Offset(0.5f, 0.36f))
+        } else ConfettiRain(Modifier.fillMaxSize())
         Column(Modifier.fillMaxSize().navigationBarsPadding()) {
             Column(
                 Modifier.weight(1f).fillMaxWidth().padding(horizontal = 30.dp),
