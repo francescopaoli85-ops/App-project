@@ -236,6 +236,7 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
     fun setMusicOn(v: Boolean) = viewModelScope.launch { c.settings.setMusicOn(v) }
     fun setAmbientSong(id: String) = viewModelScope.launch { c.settings.setAmbientSong(id) }
     fun setMusicVolume(v: Int) = viewModelScope.launch { c.settings.setMusicVolume(v) }
+    fun setAnimateOnPowerSave(v: Boolean) = viewModelScope.launch { c.settings.setAnimateOnPowerSave(v) }
     fun setSfxOn(v: Boolean) = viewModelScope.launch { c.settings.setSfxOn(v) }
     /** Suoni per le schermate. */
     val sound get() = c.sound

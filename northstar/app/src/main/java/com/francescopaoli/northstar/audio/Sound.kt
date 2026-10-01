@@ -6,6 +6,9 @@ import android.media.SoundPool
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.francescopaoli.northstar.R
 import com.francescopaoli.northstar.data.Settings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 /** Effetti sonori brevi e morbidi (arpa, legno, aria), tutti in Do maggiore come la musica. */
 class Sfx(context: Context) {
@@ -51,14 +54,17 @@ class Sfx(context: Context) {
 }
 
 /** Tutti i suoni dell'app: musica adattiva + effetti, guidati dalle impostazioni. */
-class SoundManager(context: Context) {
+class SoundManager(context: Context, settings: Flow<Settings>, scope: CoroutineScope) {
     val music = MusicEngine(context)
     val sfx = Sfx(context)
 
-    fun apply(s: Settings) {
-        music.setEnabled(s.musicOn)
-        music.setVolume(s.musicVolume / 100f)
-        music.setSong(AmbientSong.byId(s.ambientSong))
+    init {
+        // valori veri salvati sul telefono (mai quelli provvisori): parte subito la canzone giusta
+        scope.launch { settings.collect { apply(it) } }
+    }
+
+    private fun apply(s: Settings) {
+        music.configure(s.musicOn, s.musicVolume / 100f, AmbientSong.byId(s.ambientSong))
         sfx.enabled = s.sfxOn
     }
 

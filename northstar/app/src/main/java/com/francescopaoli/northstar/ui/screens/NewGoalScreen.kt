@@ -118,12 +118,12 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
     LaunchedEffect(ng.step) {
         if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) ng.enterStep()
     }
-    DisposableEffect(Unit) { onDispose { ng.voice.silence(); vm.sound.music.setDucked(false) } }
+    DisposableEffect(Unit) { onDispose { ng.voice.silence(); vm.sound.music.setVoice(false, false) } }
     // musica a strati: ogni passo aggiunge strumenti, il riepilogo è l'apoteosi (livello 7)
     LaunchedEffect(ng.step) { vm.sound.music.setScene(com.francescopaoli.northstar.audio.Scene.Flow(ng.step + 1)) }
     // quando la guida parla o ascolta, la musica si abbassa
     LaunchedEffect(voiceState.speaking, voiceState.listening) {
-        vm.sound.music.setDucked(voiceState.speaking || voiceState.listening)
+        vm.sound.music.setVoice(voiceState.speaking, voiceState.listening)
     }
     // app in secondo piano (tasto Home, altra app, schermo spento): la voce si ferma subito
     androidx.lifecycle.compose.LifecycleStartEffect(ng) {
@@ -144,6 +144,15 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                     },
                 )
                 StepDots(ng.step)
+                // interruttori rapidi: musica e voce guida, senza passare dalle impostazioni
+                Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    QuickToggle("♪  Musica", settings.musicOn) { vm.setMusicOn(it) }
+                    QuickToggle("Voce guida", settings.voiceGuide) { on ->
+                        vm.setVoice(on)
+                        ng.voiceGuideOn = on
+                        if (on) ng.enterStep() else ng.voice.silence()
+                    }
+                }
             }
 
             AnimatedContent(
@@ -226,6 +235,22 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
     }
 
     if (pickDate) NeonDatePicker(ng.deadline, { ng.deadline = it; pickDate = false }, { pickDate = false })
+}
+
+/** Pillola on/off nell'intestazione del percorso. */
+@Composable
+private fun QuickToggle(label: String, on: Boolean, onChange: (Boolean) -> Unit) {
+    Text(
+        label + if (on) "  ·  sì" else "  ·  no",
+        color = if (on) Neon.Text else Neon.Text3,
+        fontSize = 11.5.sp, fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (on) Neon.Violet.copy(alpha = 0.28f) else Color.Transparent)
+            .border(1.dp, if (on) Neon.Violet.copy(alpha = 0.6f) else Neon.Track, RoundedCornerShape(20.dp))
+            .clickable(role = Role.Switch, onClickLabel = label) { onChange(!on) }
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+    )
 }
 
 /** 6 trattini di avanzamento: quelli completati "scattano" con un pop. */

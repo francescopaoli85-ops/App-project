@@ -95,10 +95,19 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                     Label("Tema")
                     ThemePicker(s.theme, vm::setTheme)
                     val themeName = com.francescopaoli.northstar.ui.theme.Palettes.byId(s.theme).name
-                    Toggle("Sfondo animato · $themeName", s.theme !in s.staticThemes) { vm.setThemeAnimated(s.theme, it) }
+                    // stato reale: col risparmio energetico lo sfondo può essere fermo anche se il tema è animato
+                    val stoppedBySaver = powerSave && !s.animateOnPowerSave
+                    Toggle("Sfondo animato · $themeName", s.theme !in s.staticThemes && !stoppedBySaver) { on ->
+                        vm.setThemeAnimated(s.theme, on)
+                        if (on && stoppedBySaver) vm.setAnimateOnPowerSave(true)
+                    }
+                    Toggle("Ferma gli sfondi col risparmio energetico", !s.animateOnPowerSave) { vm.setAnimateOnPowerSave(!it) }
                     Text(
-                        if (powerSave) "Risparmio energetico attivo: sfondo statico finché non lo spegni."
-                        else "Statico = immagine ferma, consuma meno batteria. Vale solo per questo tema.",
+                        when {
+                            stoppedBySaver -> "Risparmio energetico attivo: gli sfondi sono fermi. Accendi \"Sfondo animato\" per farli ripartire."
+                            powerSave -> "Risparmio energetico attivo, ma gli sfondi restano animati come hai scelto."
+                            else -> "Statico = immagine ferma, consuma meno batteria. Vale solo per questo tema."
+                        },
                         color = Neon.Text3, fontSize = 11.sp, lineHeight = 15.sp,
                     )
                 }

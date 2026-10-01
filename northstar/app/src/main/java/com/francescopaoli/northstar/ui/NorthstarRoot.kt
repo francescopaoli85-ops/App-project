@@ -68,14 +68,12 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
     val fx = FxConfig(
         full = !settings.reducedEffects && !systemAnimOff,
         // sfondo statico: scelto per questo tema, o risparmio energetico attivo
-        animated = settings.theme !in settings.staticThemes && !powerSave,
+        animated = settings.theme !in settings.staticThemes && (!powerSave || settings.animateOnPowerSave),
     )
     // tema scelto: cambiando la palette si ricolora tutta l'app
     val palette = com.francescopaoli.northstar.ui.theme.Palettes.byId(settings.theme)
     androidx.compose.runtime.SideEffect { com.francescopaoli.northstar.ui.theme.Neon.palette = palette }
     val parallax = rememberParallax(fx.full && fx.animated)
-    // musica ed effetti seguono le impostazioni
-    LaunchedEffect(settings) { container.sound.apply(settings) }
     CompositionLocalProvider(
         LocalFx provides fx, LocalParallax provides parallax,
         com.francescopaoli.northstar.audio.LocalSound provides container.sound,

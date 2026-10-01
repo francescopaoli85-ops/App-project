@@ -41,6 +41,8 @@ data class Settings(
     /** Volume musica 0..100 (basso di default: è un sottofondo). */
     val musicVolume: Int = 45,
     val sfxOn: Boolean = true,
+    /** true = sfondi animati anche col risparmio energetico attivo. */
+    val animateOnPowerSave: Boolean = false,
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -63,6 +65,7 @@ class SettingsStore(private val context: Context) {
         val ambientSong = stringPreferencesKey("ambient_song")
         val musicVolume = androidx.datastore.preferences.core.intPreferencesKey("music_volume")
         val sfxOn = booleanPreferencesKey("sfx_on")
+        val animPowerSave = booleanPreferencesKey("animate_on_power_save")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -86,6 +89,7 @@ class SettingsStore(private val context: Context) {
         ambientSong = this[K.ambientSong] ?: "energy",
         musicVolume = this[K.musicVolume] ?: 45,
         sfxOn = this[K.sfxOn] ?: true,
+        animateOnPowerSave = this[K.animPowerSave] ?: false,
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -116,6 +120,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setMusicOn(v: Boolean) = context.dataStore.edit { it[K.musicOn] = v }
     suspend fun setAmbientSong(id: String) = context.dataStore.edit { it[K.ambientSong] = id }
     suspend fun setMusicVolume(v: Int) = context.dataStore.edit { it[K.musicVolume] = v.coerceIn(0, 100) }
+    suspend fun setAnimateOnPowerSave(v: Boolean) = context.dataStore.edit { it[K.animPowerSave] = v }
     suspend fun setSfxOn(v: Boolean) = context.dataStore.edit { it[K.sfxOn] = v }
     suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {

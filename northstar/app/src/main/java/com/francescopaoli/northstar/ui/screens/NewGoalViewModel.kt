@@ -66,8 +66,12 @@ class NewGoalViewModel(app: Application) : AndroidViewModel(app) {
 
     fun micTap() {
         val c = criterion ?: return
+        val v = voice.state.value
         when {
-            voice.state.value.listening -> voice.stopListening()
+            // la guida sta parlando: la interrompo e ascolto subito
+            v.speaking -> voice.startListening()
+            // sta già ascoltando: se hai già detto qualcosa chiudo, altrimenti riparto pulito
+            v.listening -> if (v.partial.isNotBlank()) voice.stopListening() else voice.startListening()
             answers[c].orEmpty().isNotBlank() -> { revisions++; answers[c] = ""; voice.startListening() }
             else -> voice.startListening()
         }

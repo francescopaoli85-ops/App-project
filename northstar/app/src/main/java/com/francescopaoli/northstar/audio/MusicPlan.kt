@@ -48,6 +48,8 @@ object MusicPlan {
     const val SCENE_FADE_S = 2.5f
     /** Volume della musica mentre la voce guida parla o ascolta. */
     const val VOICE_DUCK = 0.10f
+    /** Volume della musica mentre il microfono ascolta: si sente, ma non disturba il riconoscimento. */
+    const val LISTEN_DUCK = 0.25f
 
     fun flowAsset(stem: String) = "music/flow_$stem.webm"
 

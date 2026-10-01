@@ -29,6 +29,9 @@ class MusicEngine(private val context: Context) {
     private class Track(val asset: String, val frames: Int, val isFlow: Boolean, val enterStep: Int = 0) {
         @Volatile var data: ShortArray? = null
         @Volatile var loading = false
+        /** Frame già decodificati: la traccia può suonare mentre si decodifica il resto. */
+        @Volatile var ready = 0
+        @Volatile var complete = false
         var gain = 0f
         var target = 0f
         var fade = MusicPlan.SCENE_FADE_S
@@ -52,15 +55,24 @@ class MusicEngine(private val context: Context) {
 
     // stato voluto (scritto dal thread principale)
     @Volatile private var enabled = true
+    /** Parte solo dopo aver letto le impostazioni (così suona subito la canzone giusta). */
+    @Volatile private var configured = false
     @Volatile private var foreground = false
     @Volatile private var focusLost = false
     @Volatile private var otherAppPlaying = false
     @Volatile private var volume = 0.4f
-    @Volatile private var ducked = false
+    /** Volume voluto per la voce guida: 1 = niente, più basso mentre parla o ascolta. */
+    @Volatile private var voiceDuck = 1f
+    /** Il riconoscimento vocale ha preso il focus audio: la musica si abbassa, non si ferma. */
+    @Volatile private var focusDuck = false
+    /** Siamo nel percorso guidato (dove voce e microfono prendono il focus audio). */
+    @Volatile private var inFlow = false
 
     // stato del mixer (solo thread audio)
     private var scene: Scene = Scene.Ambient
     private var song = AmbientSong.ENERGY
+    /** Canzone di sottofondo che suona davvero: cambia solo quando la nuova è pronta. */
+    private var playingSong: AmbientSong? = null
     private var clock = 0L
     private var duckGain = 1f
     private var masterGain = 0f
@@ -70,13 +82,32 @@ class MusicEngine(private val context: Context) {
 
     // ---------------- comandi (thread principale) ----------------
 
-    fun setScene(s: Scene) = post { if (scene != s) { scene = s; retarget(musical = true) } }
+    fun setScene(s: Scene) {
+        inFlow = s is Scene.Flow
+        post { if (scene != s) { scene = s; retarget(musical = true) } }
+    }
 
-    fun setSong(s: AmbientSong) = post { if (song != s) { song = s; retarget(musical = false) } }
+    fun setSong(s: AmbientSong) = post { if (song != s) { song = s; retarget(musical = true) } }
 
-    fun setDucked(v: Boolean) { ducked = v }
+    /** Voce guida: mentre parla la musica scende al 10%, mentre ascolta al 25%. */
+    fun setVoice(speaking: Boolean, listening: Boolean) {
+        voiceDuck = when {
+            speaking -> MusicPlan.VOICE_DUCK
+            listening -> MusicPlan.LISTEN_DUCK
+            else -> 1f
+        }
+    }
 
     fun setVolume(v: Float) { volume = v.coerceIn(0f, 1f) }
+
+    /** Impostazioni dell'utente: la prima volta fa anche partire la musica. */
+    fun configure(enabled: Boolean, volume: Float, song: AmbientSong) {
+        setVolume(volume)
+        if (!configured) post { this.song = song; playingSong = song } else setSong(song)
+        configured = true
+        this.enabled = enabled
+        refreshPlayback()
+    }
 
     fun setEnabled(v: Boolean) {
         if (enabled == v) return
@@ -98,7 +129,9 @@ class MusicEngine(private val context: Context) {
         synchronized(lock) { lock.notifyAll() }
     }
 
-    private fun shouldPlay() = enabled && foreground && !focusLost && !otherAppPlaying
+    private fun phoneCall() = audio.mode == AudioManager.MODE_IN_CALL || audio.mode == AudioManager.MODE_RINGTONE
+
+    private fun shouldPlay() = configured && enabled && foreground && !focusLost && !otherAppPlaying
 
     private fun refreshPlayback() {
         if (shouldPlay()) start() else stop()
@@ -117,9 +150,11 @@ class MusicEngine(private val context: Context) {
             .setWillPauseWhenDucked(false)
             .setOnAudioFocusChangeListener { change ->
                 when (change) {
-                    // telefonata, altra app che suona: silenzio
-                    AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> { focusLost = true; refreshPlayback() }
-                    AudioManager.AUDIOFOCUS_GAIN -> { focusLost = false; refreshPlayback() }
+                    AudioManager.AUDIOFOCUS_GAIN -> { focusLost = false; focusDuck = false; refreshPlayback() }
+                    // nel percorso il focus lo prende il nostro microfono: basta abbassare
+                    else -> if (inFlow && !phoneCall()) focusDuck = true
+                    // telefonata o un'altra app che suona: silenzio
+                    else { focusLost = true; refreshPlayback() }
                 }
             }
             .build()
@@ -159,28 +194,34 @@ class MusicEngine(private val context: Context) {
         focusRequest?.let { audio.abandonAudioFocusRequest(it) }
         focusRequest = null
         // in secondo piano liberiamo la memoria del percorso (si ricarica al bisogno)
-        if (!foreground) flow.forEach { it.data = null }
+        if (!foreground) flow.filter { !it.loading }.forEach { it.data = null; it.complete = false; it.ready = 0 }
     }
 
     // ---------------- mixer (thread audio) ----------------
 
     /** Ricalcola i volumi voluti per la scena attuale. */
     private fun retarget(musical: Boolean) {
+        // le due canzoni di sottofondo restano sempre pronte: il cambio è immediato
+        load(ambient.getValue(song))
+        AmbientSong.entries.forEach { load(ambient.getValue(it)) }
+        // la canzone scelta entra quando è decodificata (o subito, se non suona ancora niente)
+        if (playingSong == null || ambient.getValue(song).complete) playingSong = song
+        val current = playingSong ?: song
+
         // il percorso parte solo quando i suoi strumenti sono pronti: intanto resta il sottofondo
         val wantFlow = scene is Scene.Flow
-        val flowReady = flow.all { it.data != null }
+        val flowReady = flow.all { it.complete }
         if (wantFlow && !flowReady) flow.forEach { load(it) }
         val effective = if (wantFlow && !flowReady) Scene.Ambient else scene
-        load(ambient.getValue(song))
 
         val bar = MusicPlan.nextBar(clock)
         for (t in flow) setTarget(t, MusicPlan.flowTarget(t.enterStep, effective), MusicPlan.FLOW_FADE_S, if (musical) bar else -1)
-        for ((s, t) in ambient) setTarget(t, MusicPlan.ambientTarget(s, song, effective), MusicPlan.SCENE_FADE_S, if (musical) bar else -1)
+        for ((s, t) in ambient) setTarget(t, MusicPlan.ambientTarget(s, current, effective), MusicPlan.SCENE_FADE_S, if (musical) bar else -1)
     }
 
     private fun setTarget(t: Track, v: Float, fade: Float, at: Long) {
         t.fade = fade
-        if (v > t.target && at >= 0) { // gli strumenti nuovi entrano sulla battuta
+        if (v != t.target && at >= 0) { // entrate e uscite cadono insieme sulla battuta: dissolvenza incrociata
             t.pendingTarget = v; t.pendingAt = at
         } else {
             t.pendingTarget = -1f; t.target = v
@@ -190,10 +231,14 @@ class MusicEngine(private val context: Context) {
     private fun load(t: Track) {
         if (t.data != null || t.loading) return
         t.loading = true
+        t.ready = 0
+        t.complete = false
+        t.data = ShortArray(t.frames * 2)
         decoder.execute {
-            val pcm = runCatching { decode(t.asset, t.frames) }
-                .onFailure { Log.w("Music", "decodifica fallita ${t.asset}", it) }.getOrNull()
-            t.data = pcm
+            val ok = runCatching { decode(t) }
+                .onFailure { Log.w("Music", "decodifica fallita ${t.asset}", it) }.isSuccess
+            if (!ok) t.data = null
+            t.complete = ok
             t.loading = false
             post { retarget(musical = true) }
         }
@@ -208,10 +253,11 @@ class MusicEngine(private val context: Context) {
 
             // volumi: dissolvenze per blocco, interpolate dentro il blocco
             val masterTo = volume * MASTER
-            val duckTo = if (ducked) MusicPlan.VOICE_DUCK else 1f
+            val duckTo = min(voiceDuck, if (focusDuck) MusicPlan.LISTEN_DUCK else 1f)
             val m0 = masterGain * duckGain
             masterGain = MusicPlan.approach(masterGain, masterTo, n, 0.6f)
-            duckGain = MusicPlan.approach(duckGain, duckTo, n, if (ducked) 0.25f else 1.0f)
+            // giù veloce quando parte la voce, su morbido quando finisce
+            duckGain = MusicPlan.approach(duckGain, duckTo, n, if (duckTo < duckGain) 0.25f else 1.0f)
             val m1 = masterGain * duckGain
 
             java.util.Arrays.fill(mix, 0f)
@@ -224,17 +270,22 @@ class MusicEngine(private val context: Context) {
                 if (g0 == 0f && g1 == 0f) {
                     if (t.silentSince < 0) t.silentSince = clock
                     // dopo 10 s di silenzio si libera la memoria delle tracce che non servono più
-                    val unused = if (t.isFlow) scene !is Scene.Flow else t !== ambient[song]
-                    if (data != null && unused && clock - t.silentSince > UNLOAD_AFTER) t.data = null
+                    // (solo il percorso: i sottofondi restano pronti per cambiare canzone al volo)
+                    if (t.isFlow && data != null && t.complete && scene !is Scene.Flow && clock - t.silentSince > UNLOAD_AFTER) {
+                        t.data = null; t.complete = false; t.ready = 0
+                    }
                     continue
                 }
                 t.silentSince = -1
                 if (data == null) continue
+                val ready = if (t.complete) t.frames else t.ready
                 var pos = ((clock % t.frames).toInt())
                 for (i in 0 until n) {
-                    val g = g0 + (g1 - g0) * i / n
-                    mix[2 * i] += data[2 * pos] * g
-                    mix[2 * i + 1] += data[2 * pos + 1] * g
+                    if (pos < ready) {
+                        val g = g0 + (g1 - g0) * i / n
+                        mix[2 * i] += data[2 * pos] * g
+                        mix[2 * i + 1] += data[2 * pos + 1] * g
+                    }
                     if (++pos == t.frames) pos = 0
                 }
             }
@@ -257,10 +308,10 @@ class MusicEngine(private val context: Context) {
 
     // ---------------- decodifica Opus → PCM 16 bit stereo ----------------
 
-    private fun decode(asset: String, frames: Int): ShortArray {
-        val out = ShortArray(frames * 2)
+    private fun decode(t: Track) {
+        val out = t.data ?: return
         var written = 0
-        val afd = context.assets.openFd(asset)
+        val afd = context.assets.openFd(t.asset)
         val ex = MediaExtractor()
         try {
             ex.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
@@ -300,10 +351,12 @@ class MusicEngine(private val context: Context) {
                             if (channels == 2) {
                                 val take = min(samples, out.size - written)
                                 sb.get(out, written, take); written += take
+                                t.ready = written / 2
                             } else {
                                 repeat(min(samples, (out.size - written) / 2)) {
                                     val s = sb.get(); out[written++] = s; out[written++] = s
                                 }
+                                t.ready = written / 2
                             }
                             codec.releaseOutputBuffer(o, false)
                             if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0 || written >= out.size) outputDone = true
@@ -318,7 +371,6 @@ class MusicEngine(private val context: Context) {
             ex.release()
             afd.close()
         }
-        return out
     }
 
     private companion object {
