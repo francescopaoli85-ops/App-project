@@ -83,10 +83,12 @@ fun NeonBackdrop(
     Box(modifier.fillMaxSize().background(Neon.Night)) {
         // tutto lo sfondo è la sorgente del "vetro": le card ci sfocano sopra
         Box(Modifier.fillMaxSize().haze(haze)) {
-            NebulaLayer(seed, blobs)
-            if (fx.full) BlobLayer(blobs.map { it.copy(alpha = it.alpha * 0.55f) })
+            ThemeSky(seed, blobs)
+            if (fx.full && Neon.Style == com.francescopaoli.northstar.ui.theme.SkyStyle.NEON) {
+                BlobLayer(blobs.map { it.copy(alpha = it.alpha * 0.55f) })
+            }
             StarField(seed, if (fx.full) 70 else 30)
-            ParticleField(
+            ThemeParticles(
                 if (fx.full) particles else particles / 2,
                 Modifier.fillMaxSize().offset {
                     // particelle = livello più vicino: parallasse più forte

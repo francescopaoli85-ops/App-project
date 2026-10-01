@@ -115,7 +115,7 @@ private class Confetto(
  * Ogni pezzo ruota e "si gira" (effetto 3D) mentre ondeggia nell'aria.
  */
 @Composable
-fun PhysicsConfetti(modifier: Modifier = Modifier, burstCenter: Offset? = Offset(0.5f, 0.38f)) {
+fun PhysicsConfetti(modifier: Modifier = Modifier, burstCenter: Offset? = Offset(0.5f, 0.38f), colors: List<Color>? = null) {
     var size by remember { mutableLongStateOf(0L) }
     var tick by remember { mutableLongStateOf(0L) }
     val pieces = remember { mutableListOf<Confetto>() }
@@ -124,7 +124,7 @@ fun PhysicsConfetti(modifier: Modifier = Modifier, burstCenter: Offset? = Offset
     fun spawn(w: Float, h: Float, x: Float, y: Float, vx: Float, vy: Float) {
         pieces += Confetto(
             x, y, vx, vy, rnd.nextFloat() * 360f, (rnd.nextFloat() - 0.5f) * 540f, rnd.nextFloat() * 6f,
-            3f + rnd.nextFloat() * 5f, w * (0.012f + rnd.nextFloat() * 0.01f), festive[rnd.nextInt(festive.size)], rnd.nextBoolean(),
+            3f + rnd.nextFloat() * 5f, w * (0.012f + rnd.nextFloat() * 0.01f), (colors ?: festive).let { it[rnd.nextInt(it.size)] }, rnd.nextBoolean(),
         )
     }
 

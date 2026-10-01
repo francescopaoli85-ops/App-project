@@ -132,11 +132,17 @@ class ScreenshotTest {
     @Test fun homeTramonto() = themed("15_home_tramonto", com.francescopaoli.northstar.ui.theme.Palettes.Tramonto) { HomeScreen(vm, {}, {}, {}, {}) }
     @Test fun homeOro() = themed("16_home_oro_nero", com.francescopaoli.northstar.ui.theme.Palettes.OroNero) { HomeScreen(vm, {}, {}, {}, {}) }
 
-    private fun themed(name: String, p: com.francescopaoli.northstar.ui.theme.Palette, content: @Composable () -> Unit) {
+    private fun themed(name: String, p: com.francescopaoli.northstar.ui.theme.Palette, atMs: Long = 2_500, content: @Composable () -> Unit) {
         com.francescopaoli.northstar.ui.theme.Neon.palette = p
-        try { shot(name, content = content) } finally {
+        try { shot(name, atMs, content) } finally {
             com.francescopaoli.northstar.ui.theme.Neon.palette = com.francescopaoli.northstar.ui.theme.Palettes.NotteNeon
         }
     }
+    @Test fun homeAurora() = themed("17_home_aurora", com.francescopaoli.northstar.ui.theme.Palettes.Aurora) { HomeScreen(vm, {}, {}, {}, {}) }
+    @Test fun homeOceano() = themed("18_home_oceano", com.francescopaoli.northstar.ui.theme.Palettes.Oceano) { HomeScreen(vm, {}, {}, {}, {}) }
+    @Test fun festaTramonto() = themed("19_festa_tramonto", com.francescopaoli.northstar.ui.theme.Palettes.Tramonto, 4_000) { CelebrationScreen(vm, "books", {}, {}) }
+    @Test fun festaOro() = themed("20_festa_oro", com.francescopaoli.northstar.ui.theme.Palettes.OroNero, 1_500) { CelebrationScreen(vm, "books", {}, {}) }
+    @Test fun festaAurora() = themed("21_festa_aurora", com.francescopaoli.northstar.ui.theme.Palettes.Aurora, 3_500) { CelebrationScreen(vm, "books", {}, {}) }
+    @Test fun festaOceano() = themed("22_festa_oceano", com.francescopaoli.northstar.ui.theme.Palettes.Oceano, 4_000) { CelebrationScreen(vm, "books", {}, {}) }
     @Test fun celebrationLater() = shot("13_celebrazione_fuochi", atMs = 3_200) { CelebrationScreen(vm, "books", {}, {}) }
 }

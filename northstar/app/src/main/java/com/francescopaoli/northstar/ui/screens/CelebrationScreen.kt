@@ -1,9 +1,8 @@
 package com.francescopaoli.northstar.ui.screens
 
-import com.francescopaoli.northstar.ui.fx.Fireworks
 import com.francescopaoli.northstar.ui.fx.LocalFx
-import com.francescopaoli.northstar.ui.fx.PhysicsConfetti
 import com.francescopaoli.northstar.ui.fx.shockwave
+import com.francescopaoli.northstar.ui.fx.shimmer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -61,10 +60,8 @@ fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit,
     val fullFx = LocalFx.current.full
     // l'onda d'urto parte dalla stella e deforma tutto lo schermo, nebulosa compresa
     NeonBackdrop(modifier = Modifier.shockwave(cy = 0.36f), particles = 6, seed = 8) {
-        if (fullFx) {
-            Fireworks(Modifier.fillMaxSize())
-            PhysicsConfetti(Modifier.fillMaxSize(), burstCenter = androidx.compose.ui.geometry.Offset(0.5f, 0.36f))
-        } else ConfettiRain(Modifier.fillMaxSize())
+        // ogni tema ha la sua festa (neon: fuochi, tramonto: lanterne, oro: coriandoli d'oro…)
+        if (fullFx) com.francescopaoli.northstar.ui.fx.ThemeCelebration() else ConfettiRain(Modifier.fillMaxSize())
         Column(Modifier.fillMaxSize().navigationBarsPadding()) {
             Column(
                 Modifier.weight(1f).fillMaxWidth().padding(horizontal = 30.dp),
@@ -73,7 +70,13 @@ fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit,
             ) {
                 Box(Modifier.size(170.dp), contentAlignment = Alignment.Center) {
                     BurstRings(Modifier.fillMaxSize())
-                    GradientIconTile(NsIcons.Star, 92.dp, 28.dp, 44.dp, Modifier.pop(0, -10f).breathe(1.08f, 1500))
+                    GradientIconTile(
+                        NsIcons.Star, 92.dp, 28.dp, 44.dp,
+                        Modifier.pop(0, -10f).breathe(1.08f, 1500).then(
+                            // oro: la stella viene "coniata", con un riflesso metallico che la attraversa
+                            if (Neon.Style == com.francescopaoli.northstar.ui.theme.SkyStyle.GOLD) Modifier.shimmer(28.dp, 0.7f, 1700) else Modifier,
+                        ),
+                    )
                 }
                 Spacer(Modifier.height(18.dp))
                 Text("Obiettivo raggiunto!", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,

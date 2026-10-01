@@ -18,6 +18,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import com.francescopaoli.northstar.ui.theme.Neon
+import com.francescopaoli.northstar.ui.theme.SkyStyle
 
 /**
  * Onda d'urto: un anello che si allarga dal punto [cx],[cy] (frazioni dello schermo)
@@ -25,6 +27,8 @@ import kotlinx.coroutines.delay
  */
 fun Modifier.shockwave(cx: Float = 0.5f, cy: Float = 0.38f, delayMs: Long = 120, durationMs: Int = 1100): Modifier = composed {
     if (Build.VERSION.SDK_INT < 33 || !LocalFx.current.full || !LocalFx.current.shaders) return@composed this
+    // onda d'urto solo dove ha senso: neon (esplosione) e oceano (acqua)
+    if (Neon.Style != SkyStyle.NEON && Neon.Style != SkyStyle.OCEAN) return@composed this
     val shader = remember { Shaders.create(Shaders.SHOCKWAVE) } ?: return@composed this
     val progress = remember { Animatable(0f) }
     var size by remember { mutableStateOf(IntSize.Zero) }

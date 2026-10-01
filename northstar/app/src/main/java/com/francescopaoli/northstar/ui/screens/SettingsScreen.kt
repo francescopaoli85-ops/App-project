@@ -169,8 +169,11 @@ private fun ModeSwitch(mode: CalendarMode, onPick: (CalendarMode) -> Unit) {
 /** Tre anteprime di tema: tocchi e tutta l'app si ricolora subito. */
 @Composable
 private fun ThemePicker(selected: String, onPick: (String) -> Unit) {
+    // 3 per riga: con 5 temi vengono due righe ordinate
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    com.francescopaoli.northstar.ui.theme.Palettes.all.chunked(3).forEach { row ->
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        com.francescopaoli.northstar.ui.theme.Palettes.all.forEach { p ->
+        row.forEach { p ->
             val on = p.id == selected
             val shape = RoundedCornerShape(14.dp)
             Column(
@@ -202,5 +205,8 @@ private fun ThemePicker(selected: String, onPick: (String) -> Unit) {
                     textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
             }
         }
+        repeat(3 - row.size) { androidx.compose.foundation.layout.Spacer(Modifier.weight(1f)) }
+    }
+    }
     }
 }
