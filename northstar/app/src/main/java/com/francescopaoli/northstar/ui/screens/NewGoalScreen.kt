@@ -119,6 +119,11 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
         if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) ng.enterStep()
     }
     DisposableEffect(Unit) { onDispose { ng.voice.silence() } }
+    // app in secondo piano (tasto Home, altra app, schermo spento): la voce si ferma subito
+    androidx.lifecycle.compose.LifecycleStartEffect(ng) {
+        ng.voice.resume()
+        onStopOrDispose { ng.voice.pause() }
+    }
 
     NeonBackdrop(particles = 6, seed = 9) {
         Column(Modifier.fillMaxSize().imePadding()) {

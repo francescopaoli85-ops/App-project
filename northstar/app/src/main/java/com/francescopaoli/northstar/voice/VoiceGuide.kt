@@ -80,6 +80,8 @@ class VoiceGuide(private val context: Context) {
     /** true se l'ascolto in corso è partito da un'interruzione. */
     private var listeningAfterBargeIn = false
     private var commMode = false
+    /** true con l'app in secondo piano: niente voce e niente ascolto finché non si rientra. */
+    @Volatile private var paused = false
 
     init {
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
@@ -92,7 +94,7 @@ class VoiceGuide(private val context: Context) {
                 main.post {
                     bargeIn.stop()
                     _state.update { it.copy(speaking = false) }
-                    startListening() // finita la domanda, ascolto
+                    if (!paused) startListening() // finita la domanda, ascolto
                 }
             }
             @Deprecated("Deprecated in Java")
@@ -114,6 +116,7 @@ class VoiceGuide(private val context: Context) {
 
     /** Legge la domanda; nel frattempo resta in ascolto per l'interruzione. */
     fun speakAndListen(text: String) {
+        if (paused) return
         stopListening()
         lastQuestion = text
         if (!ttsReady) { pendingSpeech = text; return }
@@ -130,7 +133,7 @@ class VoiceGuide(private val context: Context) {
     }
 
     fun startListening() {
-        if (!hasMic() || !_state.value.available) return
+        if (paused || !hasMic() || !_state.value.available) return
         bargeIn.stop()
         if (tts.isSpeaking) tts.stop()
         recognizer?.destroy()
@@ -161,6 +164,17 @@ class VoiceGuide(private val context: Context) {
         leaveSpeakerphone()
         _state.update { it.copy(speaking = false) }
     }
+
+    /** App in secondo piano: silenzio totale e audio del telefono rimesso a posto. */
+    fun pause() {
+        paused = true
+        pendingSpeech = null
+        main.removeCallbacksAndMessages(null)
+        silence()
+    }
+
+    /** Rientro nell'app: si può di nuovo parlare, ma la guida non riparte da sola. */
+    fun resume() { paused = false }
 
     fun release() {
         silence()
