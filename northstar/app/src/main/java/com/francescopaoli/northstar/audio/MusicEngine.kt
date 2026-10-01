@@ -57,6 +57,7 @@ class MusicEngine(private val context: Context) {
     @Volatile private var enabled = true
     /** Parte solo dopo aver letto le impostazioni (così suona subito la canzone giusta). */
     @Volatile private var configured = false
+    @Volatile private var stoppedAt = 0L
     @Volatile private var foreground = false
     @Volatile private var focusLost = false
     @Volatile private var otherAppPlaying = false
@@ -120,7 +121,12 @@ class MusicEngine(private val context: Context) {
         if (foreground == v) return
         foreground = v
         // al rientro: se c'è già musica di un'altra app (Spotify...) non la copriamo
-        if (v) { otherAppPlaying = thread == null && audio.isMusicActive; focusLost = false }
+        if (v) {
+            // musica di un'altra app? (non la coda della nostra appena fermata)
+            val justStopped = System.currentTimeMillis() - stoppedAt < 3000
+            otherAppPlaying = thread == null && !justStopped && audio.isMusicActive
+            focusLost = false
+        }
         refreshPlayback()
     }
 
@@ -186,6 +192,7 @@ class MusicEngine(private val context: Context) {
     private fun stop() {
         val th = thread ?: return
         thread = null
+        stoppedAt = System.currentTimeMillis()
         synchronized(lock) { lock.notifyAll() }
         th.interrupt()
         runCatching { th.join(300) }

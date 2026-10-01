@@ -46,7 +46,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        (application as NorthstarApp).container.sound.setForeground(false)
+        // girare il telefono ricrea la schermata ma non è un'uscita: la musica continua
+        if (!isChangingConfigurations) (application as NorthstarApp).container.sound.setForeground(false)
         super.onStop()
     }
 
