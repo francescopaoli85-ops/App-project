@@ -47,6 +47,7 @@ import com.francescopaoli.northstar.ui.theme.Neon
 @Composable
 fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: () -> Unit) {
     val s by vm.settings.collectAsStateWithLifecycle()
+    val powerSave by com.francescopaoli.northstar.ui.fx.rememberPowerSaveMode()
     val activity = androidx.compose.ui.platform.LocalContext.current as android.app.Activity
     val price by vm.removeAdsPrice.collectAsStateWithLifecycle()
     val session = (vm.session.collectAsStateWithLifecycle().value as? SessionState.LoggedIn)?.session
@@ -92,6 +93,13 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                 NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {
                     Label("Tema")
                     ThemePicker(s.theme, vm::setTheme)
+                    val themeName = com.francescopaoli.northstar.ui.theme.Palettes.byId(s.theme).name
+                    Toggle("Sfondo animato · $themeName", s.theme !in s.staticThemes) { vm.setThemeAnimated(s.theme, it) }
+                    Text(
+                        if (powerSave) "Risparmio energetico attivo: sfondo statico finché non lo spegni."
+                        else "Statico = immagine ferma, consuma meno batteria. Vale solo per questo tema.",
+                        color = Neon.Text3, fontSize = 11.sp, lineHeight = 15.sp,
+                    )
                 }
 
                 NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {

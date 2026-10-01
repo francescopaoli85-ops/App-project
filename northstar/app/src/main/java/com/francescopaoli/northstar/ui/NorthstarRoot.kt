@@ -63,13 +63,18 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
     val systemAnimOff = remember {
         android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
     }
-    val fx = FxConfig(full = !settings.reducedEffects && !systemAnimOff)
+    val powerSave by com.francescopaoli.northstar.ui.fx.rememberPowerSaveMode()
+    val fx = FxConfig(
+        full = !settings.reducedEffects && !systemAnimOff,
+        // sfondo statico: scelto per questo tema, o risparmio energetico attivo
+        animated = settings.theme !in settings.staticThemes && !powerSave,
+    )
     // tema scelto: cambiando la palette si ricolora tutta l'app
     val palette = com.francescopaoli.northstar.ui.theme.Palettes.byId(settings.theme)
     androidx.compose.runtime.SideEffect { com.francescopaoli.northstar.ui.theme.Neon.palette = palette }
-    val parallax = rememberParallax(fx.full)
+    val parallax = rememberParallax(fx.full && fx.animated)
     CompositionLocalProvider(LocalFx provides fx, LocalParallax provides parallax) {
-        SparkHost(enabled = fx.full) { RootContent(vm, deepLink, onDeepLinkHandled) }
+        SparkHost(enabled = fx.full && fx.animated) { RootContent(vm, deepLink, onDeepLinkHandled) }
     }
 }
 

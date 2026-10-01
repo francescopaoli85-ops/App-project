@@ -54,9 +54,9 @@ fun Modifier.animatedGradient(
     colors: List<Color> = Neon.gradient,
     durationMs: Int = 2400,
 ): Modifier = composed {
-    val t by rememberInfiniteTransition(label = "grad").animateFloat(
+    val t by if (LocalFx.current.animated) rememberInfiniteTransition(label = "grad").animateFloat(
         0f, 1f, infiniteRepeatable(tween(durationMs, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "g",
-    )
+    ) else remember { androidx.compose.runtime.mutableFloatStateOf(0.35f) }
     drawBehind {
         // il gradiente è largo 2.2x (come background-size: 220%) e scorre in diagonale
         val shift = -1.2f * size.width * t
@@ -82,7 +82,7 @@ fun Modifier.glow(
     pulse: Boolean = true,
     durationMs: Int = 1600,
 ): Modifier = composed {
-    val p by if (pulse) rememberInfiniteTransition(label = "glow").animateFloat(
+    val p by if (pulse && LocalFx.current.animated) rememberInfiniteTransition(label = "glow").animateFloat(
         0f, 1f, infiniteRepeatable(tween(durationMs, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "p",
     ) else remember { androidx.compose.runtime.mutableFloatStateOf(0.5f) }
     val density = LocalDensity.current
@@ -100,6 +100,7 @@ fun Modifier.glow(
 
 /** Leggero "respiro" di scala, abbinato al bagliore sui CTA. */
 fun Modifier.breathe(max: Float = 1.03f, durationMs: Int = 1600): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val s by rememberInfiniteTransition(label = "br").animateFloat(
         1f, max, infiniteRepeatable(tween(durationMs, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "s",
     )
@@ -108,6 +109,7 @@ fun Modifier.breathe(max: Float = 1.03f, durationMs: Int = 1600): Modifier = com
 
 /** Fascia di luce che attraversa in diagonale (shimmer) sui bottoni principali. */
 fun Modifier.shimmer(corner: Dp, alpha: Float = 0.35f, durationMs: Int = 3200): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val t by rememberInfiniteTransition(label = "sh").animateFloat(
         -0.5f, 1.6f, infiniteRepeatable(tween(durationMs, easing = FastOutSlowInEasing)), label = "t",
     )
@@ -130,6 +132,7 @@ fun Modifier.shimmer(corner: Dp, alpha: Float = 0.35f, durationMs: Int = 3200): 
 
 /** Fluttua su e giù. */
 fun Modifier.floatY(amplitude: Dp = 6.dp, durationMs: Int = 2200, delayMs: Int = 0): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val y by rememberInfiniteTransition(label = "fy").animateFloat(
         0f, 1f, infiniteRepeatable(tween(durationMs, delayMs, FastOutSlowInEasing), RepeatMode.Reverse), label = "y",
     )
@@ -138,6 +141,7 @@ fun Modifier.floatY(amplitude: Dp = 6.dp, durationMs: Int = 2200, delayMs: Int =
 
 /** Oscillazione tipo campanella (scossa rapida, poi pausa). */
 fun Modifier.bellSwing(durationMs: Int = 2000): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val a by rememberInfiniteTransition(label = "bell").animateFloat(
         0f, 0f,
         infiniteRepeatable(keyframes {
@@ -158,6 +162,7 @@ fun Modifier.bellSwing(durationMs: Int = 2000): Modifier = composed {
 
 /** Piccola spinta orizzontale (chevron che "invita" a toccare). */
 fun Modifier.nudgeX(distance: Dp = 3.dp, durationMs: Int = 1600): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val x by rememberInfiniteTransition(label = "nx").animateFloat(
         0f, 1f, infiniteRepeatable(tween(durationMs / 2, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "x",
     )
@@ -166,6 +171,7 @@ fun Modifier.nudgeX(distance: Dp = 3.dp, durationMs: Int = 1600): Modifier = com
 
 /** Ruota avanti e indietro di [angle] gradi (icona calendario che "ticchetta"). */
 fun Modifier.rock(angle: Float = 90f, durationMs: Int = 2000): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val r by rememberInfiniteTransition(label = "rock").animateFloat(
         0f, angle, infiniteRepeatable(tween(durationMs / 2, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "r",
     )
@@ -174,6 +180,7 @@ fun Modifier.rock(angle: Float = 90f, durationMs: Int = 2000): Modifier = compos
 
 /** Scintillio (twinkle): opacità e scala pulsanti. */
 fun Modifier.twinkle(durationMs: Int = 2200, delayMs: Int = 0): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val v by rememberInfiniteTransition(label = "tw").animateFloat(
         0f, 1f, infiniteRepeatable(tween(durationMs / 2, delayMs, FastOutSlowInEasing), RepeatMode.Reverse), label = "v",
     )
@@ -182,6 +189,7 @@ fun Modifier.twinkle(durationMs: Int = 2200, delayMs: Int = 0): Modifier = compo
 
 /** Rotazione continua lenta (elementi che orbitano). */
 fun Modifier.spin(durationMs: Int = 9000, reverse: Boolean = false): Modifier = composed {
+    if (!LocalFx.current.animated) return@composed this
     val r by rememberInfiniteTransition(label = "spin").animateFloat(
         0f, if (reverse) -360f else 360f, infiniteRepeatable(tween(durationMs, easing = LinearEasing)), label = "r",
     )

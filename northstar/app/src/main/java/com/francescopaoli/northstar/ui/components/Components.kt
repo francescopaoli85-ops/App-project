@@ -195,7 +195,9 @@ fun ProgressRing(
 ) {
     val anim = remember { Animatable(0f) }
     // bagliore pulsante sul solo tratto colorato (drop-shadow del mockup), mai sul centro
-    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "ring").animateFloat(
+    val animatedFx = LocalFx.current.animated
+    val pulse by if (!animatedFx) remember { androidx.compose.runtime.mutableFloatStateOf(0.5f) }
+    else androidx.compose.animation.core.rememberInfiniteTransition(label = "ring").animateFloat(
         0f, 1f,
         androidx.compose.animation.core.infiniteRepeatable(
             tween(1200, easing = androidx.compose.animation.core.FastOutSlowInEasing),

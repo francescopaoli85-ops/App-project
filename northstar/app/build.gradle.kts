@@ -25,8 +25,8 @@ android {
         applicationId = "com.francescopaoli.northstar"
         minSdk = 28
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.5.0"
+        versionCode = 9
+        versionName = "0.5.1"
         manifestPlaceholders["admobAppId"] = admobAppId
         buildConfigField("String", "ADMOB_NATIVE_ID", "\"$admobNativeId\"")
     }

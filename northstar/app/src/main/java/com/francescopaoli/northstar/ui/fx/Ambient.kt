@@ -48,6 +48,8 @@ import kotlin.random.Random
  */
 @Composable
 fun rememberClock(fps: Int = 60): androidx.compose.runtime.State<Float> {
+    // statico: il tempo resta fermo su un istante scelto perché tutti i cieli sono "in posa"
+    if (!LocalFx.current.animated) return remember { mutableFloatStateOf(STATIC_TIME) }
     val t = remember { mutableFloatStateOf(0f) }
     LaunchedEffect(fps) {
         val start = withFrameMillis { it }
@@ -61,6 +63,9 @@ fun rememberClock(fps: Int = 60): androidx.compose.runtime.State<Float> {
 }
 
 private val palette: List<Color> get() = listOf(Neon.Cyan, Neon.Lilac, Neon.Violet)
+
+/** Istante usato per la versione statica: sole alto, aurora piena, raggi aperti, venature distese. */
+const val STATIC_TIME = 4.2f
 
 /** Blob di colore: posizione in frazioni dello schermo, raggio in frazioni della larghezza. */
 data class Blob(val x: Float, val y: Float, val radius: Float, val color: Color, val alpha: Float = 0.5f, val periodS: Float = 3.2f)
@@ -260,6 +265,7 @@ private fun DrawScope.orbit(turns: Float, c: Offset, radius: Float, stars: List<
 /** Barre dell'onda vocale: reagiscono al volume della voce. */
 @Composable
 fun VoiceWave(level: Float, active: Boolean, modifier: Modifier = Modifier) {
+    if (!LocalFx.current.animated) return
     val tr = rememberInfiniteTransition(label = "wave")
     val colors = List(5) { androidx.compose.ui.graphics.lerp(Neon.Violet, Neon.Cyan, it / 4f) }
     val bars = colors.indices.map { i ->

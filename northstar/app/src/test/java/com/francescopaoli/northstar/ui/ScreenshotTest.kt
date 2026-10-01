@@ -92,12 +92,12 @@ class ScreenshotTest {
     }
 
     /** Monta la schermata, lascia correre le animazioni d'ingresso e scatta. */
-    private fun shot(name: String, atMs: Long = 2_500, content: @Composable () -> Unit) {
+    private fun shot(name: String, atMs: Long = 2_500, animated: Boolean = true, content: @Composable () -> Unit) {
         compose.mainClock.autoAdvance = false
         compose.setContent {
             // nei test il disegno è software: niente shader (la nebulosa è verificata a parte)
             androidx.compose.runtime.CompositionLocalProvider(
-                com.francescopaoli.northstar.ui.fx.LocalFx provides com.francescopaoli.northstar.ui.fx.FxConfig(full = true, shaders = false),
+                com.francescopaoli.northstar.ui.fx.LocalFx provides com.francescopaoli.northstar.ui.fx.FxConfig(full = true, shaders = false, animated = animated),
             ) { NorthstarTheme { content() } }
         }
         compose.waitUntil(5_000) { vm.goals.value.isNotEmpty() }
@@ -134,7 +134,7 @@ class ScreenshotTest {
 
     private fun themed(name: String, p: com.francescopaoli.northstar.ui.theme.Palette, atMs: Long = 2_500, content: @Composable () -> Unit) {
         com.francescopaoli.northstar.ui.theme.Neon.palette = p
-        try { shot(name, atMs, content) } finally {
+        try { shot(name, atMs, content = content) } finally {
             com.francescopaoli.northstar.ui.theme.Neon.palette = com.francescopaoli.northstar.ui.theme.Palettes.NotteNeon
         }
     }
@@ -144,5 +144,16 @@ class ScreenshotTest {
     @Test fun festaOro() = themed("20_festa_oro", com.francescopaoli.northstar.ui.theme.Palettes.OroNero, 1_500) { CelebrationScreen(vm, "books", {}, {}) }
     @Test fun festaAurora() = themed("21_festa_aurora", com.francescopaoli.northstar.ui.theme.Palettes.Aurora, 3_500) { CelebrationScreen(vm, "books", {}, {}) }
     @Test fun festaOceano() = themed("22_festa_oceano", com.francescopaoli.northstar.ui.theme.Palettes.Oceano, 4_000) { CelebrationScreen(vm, "books", {}, {}) }
+    /** Versione statica (risparmio energetico o scelta per tema): deve essere bella anche ferma. */
+    @Test fun staticNeon() = staticShot(com.francescopaoli.northstar.ui.theme.Palettes.NotteNeon)
+    @Test fun staticTramonto() = staticShot(com.francescopaoli.northstar.ui.theme.Palettes.Tramonto)
+    @Test fun staticOro() = staticShot(com.francescopaoli.northstar.ui.theme.Palettes.OroNero)
+    @Test fun staticAurora() = staticShot(com.francescopaoli.northstar.ui.theme.Palettes.Aurora)
+    @Test fun staticOceano() = staticShot(com.francescopaoli.northstar.ui.theme.Palettes.Oceano)
+    private fun staticShot(p: com.francescopaoli.northstar.ui.theme.Palette) {
+        com.francescopaoli.northstar.ui.theme.Neon.palette = p
+        try { shot("statico_${p.id}", animated = false) { com.francescopaoli.northstar.ui.screens.PolarisScreen(vm, {}, {}, {}) } }
+        finally { com.francescopaoli.northstar.ui.theme.Neon.palette = com.francescopaoli.northstar.ui.theme.Palettes.NotteNeon }
+    }
     @Test fun celebrationLater() = shot("13_celebrazione_fuochi", atMs = 3_200) { CelebrationScreen(vm, "books", {}, {}) }
 }

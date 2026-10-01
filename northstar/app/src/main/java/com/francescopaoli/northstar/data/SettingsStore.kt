@@ -32,6 +32,8 @@ data class Settings(
     val theme: String = "neon",
     /** Giorno (epochDay) fino a cui il banner Calendar resta nascosto. */
     val calendarBannerHiddenUntil: Long = 0,
+    /** Temi per cui l'utente ha scelto lo sfondo statico. */
+    val staticThemes: Set<String> = emptySet(),
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -49,6 +51,7 @@ class SettingsStore(private val context: Context) {
         val reducedFx = booleanPreferencesKey("reduced_fx")
         val theme = stringPreferencesKey("theme")
         val bannerHidden = longPreferencesKey("cal_banner_hidden_until")
+        val staticThemes = androidx.datastore.preferences.core.stringSetPreferencesKey("static_themes")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -67,6 +70,7 @@ class SettingsStore(private val context: Context) {
         reducedEffects = this[K.reducedFx] ?: false,
         theme = this[K.theme] ?: "neon",
         calendarBannerHiddenUntil = this[K.bannerHidden] ?: 0,
+        staticThemes = this[K.staticThemes] ?: emptySet(),
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -87,6 +91,10 @@ class SettingsStore(private val context: Context) {
     suspend fun lastSent(tag: String): Long? = context.dataStore.data.first()[longPreferencesKey("sent_$tag")]
     suspend fun markSent(tag: String, period: Long) = context.dataStore.edit { it[longPreferencesKey("sent_$tag")] = period }
 
+    suspend fun setThemeAnimated(id: String, animated: Boolean) = context.dataStore.edit {
+        val cur = it[K.staticThemes] ?: emptySet()
+        it[K.staticThemes] = if (animated) cur - id else cur + id
+    }
     suspend fun setTheme(id: String) = context.dataStore.edit { it[K.theme] = id }
     suspend fun hideCalendarBanner(untilEpochDay: Long) = context.dataStore.edit { it[K.bannerHidden] = untilEpochDay }
     suspend fun setReducedEffects(v: Boolean) = context.dataStore.edit { it[K.reducedFx] = v }
