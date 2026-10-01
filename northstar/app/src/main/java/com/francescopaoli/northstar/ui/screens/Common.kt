@@ -147,7 +147,7 @@ private fun Modifier.glassHeader(): Modifier {
             haze,
             dev.chrisbanes.haze.HazeStyle(
                 backgroundColor = Neon.Night,
-                tint = dev.chrisbanes.haze.HazeTint(Neon.SurfaceHi.copy(alpha = 0.5f)),
+                tint = dev.chrisbanes.haze.HazeTint(Neon.SurfaceHi.copy(alpha = 0.65f)),
                 blurRadius = 30.dp, noiseFactor = 0.05f,
             ),
         )

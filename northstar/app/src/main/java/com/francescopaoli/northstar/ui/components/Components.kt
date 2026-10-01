@@ -70,7 +70,7 @@ val GlassEdge = Brush.linearGradient(listOf(Color.White.copy(alpha = 0.18f), Neo
  * Con effetti ridotti o Android più vecchi: superficie scura piena come prima.
  */
 @Composable
-fun Modifier.glass(shape: Shape, tint: Color = Neon.Surface.copy(alpha = 0.58f), solid: Color = Neon.Surface): Modifier {
+fun Modifier.glass(shape: Shape, tint: Color = Neon.Surface.copy(alpha = 0.72f), solid: Color = Neon.Surface): Modifier {
     val haze = LocalHaze.current
     return if (haze != null && LocalFx.current.full && Build.VERSION.SDK_INT >= 31) {
         this.clip(shape).hazeChild(

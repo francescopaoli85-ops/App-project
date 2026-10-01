@@ -12,7 +12,11 @@ object Shaders {
 
     val supported: Boolean get() = Build.VERSION.SDK_INT >= 33
 
-    /** Nebulosa/aurora che scorre lentamente: rumore frattale deformato (domain warping). */
+    /**
+     * Nebulosa/aurora che scorre lentamente: onde (seno/coseno) sovrapposte e deformate.
+     * Niente funzioni "hash" con moltiplicazioni enormi: su molte GPU lo shader gira a
+     * precisione ridotta e quelle si rompevano a blocchi. Le onde restano lisce comunque.
+     */
     const val NEBULA = """
 uniform float2 iResolution;
 uniform float iTime;
@@ -21,49 +25,29 @@ uniform float3 cViolet;
 uniform float3 cCyan;
 uniform float3 cNight;
 
-float hash(float2 p) {
-    p = fract(p * float2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
-}
-
-float noise(float2 p) {
-    float2 i = floor(p);
-    float2 f = fract(p);
-    float a = hash(i);
-    float b = hash(i + float2(1.0, 0.0));
-    float c = hash(i + float2(0.0, 1.0));
-    float d = hash(i + float2(1.0, 1.0));
-    float2 u = f * f * (3.0 - 2.0 * f);
-    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-}
-
-float fbm(float2 p) {
+float fbm(float2 p, float t) {
     float v = 0.0;
-    float amp = 0.5;
+    float a = 0.5;
     for (int i = 0; i < 4; i++) {
-        v += amp * noise(p);
-        p = p * 2.03 + float2(1.7, 9.2);
-        amp *= 0.5;
+        v += a * (0.5 + 0.5 * sin(p.x * 3.1 + 1.7 * sin(p.y * 2.3 + t)) * cos(p.y * 2.7 - t * 0.7));
+        // ruota e ingrandisce: ogni livello ha direzioni diverse, niente righe
+        p = float2(0.8 * p.x - 0.6 * p.y, 0.6 * p.x + 0.8 * p.y) * 1.9 + float2(0.37, -0.21);
+        a *= 0.5;
     }
     return v;
 }
 
 half4 main(float2 fragCoord) {
-    float2 uv = (fragCoord + iOffset) / iResolution.y;
-    float t = iTime * 0.045;
-    float2 q = float2(fbm(uv * 1.6 + float2(0.0, t)), fbm(uv * 1.6 + float2(5.2, -t)));
-    // il rumore esce tra ~0.2 e ~0.46: lo riporto su 0..1
-    float n = clamp((fbm(uv * 1.3 + 2.4 * q + float2(t * 0.7, t * 0.3)) - 0.2) / 0.26, 0.0, 1.0);
+    float2 p = (fragCoord + iOffset) / iResolution.y;
+    float t = iTime * 0.05;
+    float qx = fbm(p + float2(0.0, t), t);
+    float qy = fbm(p + float2(5.2, -t), t);
+    float n = fbm(p + 1.6 * float2(qx, qy), t);
+    float m = clamp((n - 0.25) / 0.5, 0.0, 1.0);
 
     float3 col = cNight;
-    float glowV = smoothstep(0.25, 0.95, n);
-    col = mix(col, cViolet, glowV * (0.55 + 0.35 * q.x));
-    float glowC = smoothstep(0.55, 1.0, n * (0.55 + q.y));
-    col = mix(col, cCyan, glowC * 0.4);
-    // nucleo luminoso dove le due correnti si incontrano
-    float core = max(n - 0.38, 0.0) * 2.4;
-    col += cViolet * core * core * 0.5;
+    col = mix(col, cViolet, smoothstep(0.35, 1.0, m) * (0.35 + 0.3 * qx));
+    col = mix(col, cCyan, smoothstep(0.6, 1.0, m * (0.5 + qy)) * 0.22);
 
     float2 c = fragCoord / iResolution - 0.5;
     col *= 1.0 - dot(c, c) * 0.9;
