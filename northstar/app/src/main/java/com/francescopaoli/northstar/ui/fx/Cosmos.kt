@@ -42,12 +42,7 @@ fun NebulaLayer(seed: Int, fallback: List<Blob>) {
 @RequiresApi(33)
 @Composable
 private fun ShaderNebula(shader: android.graphics.RuntimeShader, seed: Int) {
-    val brush = remember(shader) {
-        shader.setFloatUniform("cViolet", 0.486f, 0.227f, 0.929f)
-        shader.setFloatUniform("cCyan", 0.133f, 0.827f, 0.933f)
-        shader.setFloatUniform("cNight", 0.059f, 0.035f, 0.125f)
-        ShaderBrush(shader)
-    }
+    val brush = remember(shader) { ShaderBrush(shader) }
     val t by rememberClock(fps = 30)
     val parallax = LocalParallax.current
     Box(Modifier.fillMaxSize()) {
@@ -64,6 +59,10 @@ private fun ShaderNebula(shader: android.graphics.RuntimeShader, seed: Int) {
                 return@Canvas
             }
             val p = parallax.value
+            // i colori seguono il tema attivo
+            Neon.Violet.let { shader.setFloatUniform("cViolet", it.red, it.green, it.blue) }
+            Neon.Cyan.let { shader.setFloatUniform("cCyan", it.red, it.green, it.blue) }
+            Neon.Night.let { shader.setFloatUniform("cNight", it.red, it.green, it.blue) }
             shader.setFloatUniform("iResolution", size.width, size.height)
             shader.setFloatUniform("iTime", t + seed * 31f)
             // livello più lontano: si sposta poco
@@ -84,7 +83,7 @@ private class Star(
  */
 @Composable
 fun StarField(seed: Int, count: Int, modifier: Modifier = Modifier) {
-    val stars = remember(seed, count) {
+    val stars = remember(seed, count, Neon.palette) {
         val rnd = Random(seed * 7 + 3)
         val colors = listOf(Color.White, Color(0xFFE6DEFF), Neon.Lilac, Neon.Cyan)
         List(count) {

@@ -90,7 +90,7 @@ fun LoginScreen(vm: MainViewModel) {
                 )
                 Text(
                     "Un desiderio vago diventa\nun obiettivo chiaro, con data\ne direzione.",
-                    color = Color(0xFFB4A9D6), fontSize = 14.sp, lineHeight = 22.sp, textAlign = TextAlign.Center,
+                    color = Neon.TextMid, fontSize = 14.sp, lineHeight = 22.sp, textAlign = TextAlign.Center,
                     modifier = Modifier.enter(2, stepMs = 120),
                 )
             }

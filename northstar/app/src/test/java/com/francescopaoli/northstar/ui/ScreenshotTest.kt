@@ -126,5 +126,17 @@ class ScreenshotTest {
             )
         }
     }
+    @Test fun polaris() = shot("14_stella_polare") {
+        com.francescopaoli.northstar.ui.screens.PolarisScreen(vm, {}, {}, {})
+    }
+    @Test fun homeTramonto() = themed("15_home_tramonto", com.francescopaoli.northstar.ui.theme.Palettes.Tramonto) { HomeScreen(vm, {}, {}, {}, {}) }
+    @Test fun homeOro() = themed("16_home_oro_nero", com.francescopaoli.northstar.ui.theme.Palettes.OroNero) { HomeScreen(vm, {}, {}, {}, {}) }
+
+    private fun themed(name: String, p: com.francescopaoli.northstar.ui.theme.Palette, content: @Composable () -> Unit) {
+        com.francescopaoli.northstar.ui.theme.Neon.palette = p
+        try { shot(name, content = content) } finally {
+            com.francescopaoli.northstar.ui.theme.Neon.palette = com.francescopaoli.northstar.ui.theme.Palettes.NotteNeon
+        }
+    }
     @Test fun celebrationLater() = shot("13_celebrazione_fuochi", atMs = 3_200) { CelebrationScreen(vm, "books", {}, {}) }
 }

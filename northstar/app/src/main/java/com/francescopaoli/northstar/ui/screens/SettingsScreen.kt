@@ -1,6 +1,8 @@
 package com.francescopaoli.northstar.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -88,6 +90,11 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                 }
 
                 NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {
+                    Label("Tema")
+                    ThemePicker(s.theme, vm::setTheme)
+                }
+
+                NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {
                     Label("Esperienza")
                     Toggle("Voce guida nelle domande", s.voiceGuide, vm::setVoice)
                     Toggle("Check-in periodici", s.checkins, vm::setCheckins)
@@ -155,6 +162,45 @@ private fun ModeSwitch(mode: CalendarMode, onPick: (CalendarMode) -> Unit) {
                     .clickable(role = Role.RadioButton) { onPick(m) }
                     .padding(vertical = 10.dp),
             )
+        }
+    }
+}
+
+/** Tre anteprime di tema: tocchi e tutta l'app si ricolora subito. */
+@Composable
+private fun ThemePicker(selected: String, onPick: (String) -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        com.francescopaoli.northstar.ui.theme.Palettes.all.forEach { p ->
+            val on = p.id == selected
+            val shape = RoundedCornerShape(14.dp)
+            Column(
+                Modifier
+                    .weight(1f)
+                    .clip(shape)
+                    .background(p.night)
+                    .border(if (on) 2.dp else 1.dp, if (on) p.accent2 else p.track, shape)
+                    .clickable(role = Role.RadioButton, onClickLabel = p.name) { onPick(p.id) }
+                    .padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // mini cielo del tema: bagliore + gradiente degli accenti
+                androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(54.dp).clip(RoundedCornerShape(10.dp))) {
+                    drawRect(p.surface)
+                    drawCircle(
+                        androidx.compose.ui.graphics.Brush.radialGradient(listOf(p.accent1.copy(alpha = 0.7f), Color.Transparent),
+                            androidx.compose.ui.geometry.Offset(size.width * 0.75f, size.height * 0.2f), size.width * 0.7f),
+                        size.width * 0.7f, androidx.compose.ui.geometry.Offset(size.width * 0.75f, size.height * 0.2f),
+                    )
+                    drawRoundRect(
+                        androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(p.accent1, p.accent2)),
+                        topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.12f, size.height * 0.68f),
+                        size = androidx.compose.ui.geometry.Size(size.width * 0.76f, size.height * 0.16f),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(20f, 20f),
+                    )
+                }
+                Text(p.name, color = if (on) p.text else p.text2, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
+            }
         }
     }
 }

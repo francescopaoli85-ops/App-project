@@ -27,7 +27,7 @@ import kotlin.random.Random
  * Le simulazioni girano a frame e disegnano su Canvas (funzionano su tutti gli Android).
  */
 
-private val festive = listOf(Neon.Cyan, Neon.Lilac, Neon.Violet, Color(0xFFFFC857), Color(0xFFFF6BAA), Color.White)
+private val festive: List<Color> get() = listOf(Neon.Cyan, Neon.Lilac, Neon.Violet, Color(0xFFFFC857), Color(0xFFFF6BAA), Color.White)
 
 private class Spark(var x: Float, var y: Float, var vx: Float, var vy: Float, val color: Color, var life: Float, val maxLife: Float)
 private class Rocket(var x: Float, var y: Float, var vy: Float, val vx: Float, val color: Color)

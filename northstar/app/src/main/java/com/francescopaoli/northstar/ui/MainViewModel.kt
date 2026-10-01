@@ -223,6 +223,11 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
     fun disconnectCalendar() = viewModelScope.launch { c.settings.setCalendarConnected(false) }
     fun setCalendarMode(m: CalendarMode) = viewModelScope.launch { c.settings.setManualMode(m) }
     fun setVoice(v: Boolean) = viewModelScope.launch { c.settings.setVoiceGuide(v) }
+    fun setTheme(id: String) = viewModelScope.launch { c.settings.setTheme(id) }
+    /** "Più tardi" sul banner: si ripresenta tra una settimana. */
+    fun hideCalendarBanner() = viewModelScope.launch {
+        c.settings.hideCalendarBanner(java.time.LocalDate.now().plusDays(7).toEpochDay())
+    }
     fun setReducedEffects(v: Boolean) = viewModelScope.launch { c.settings.setReducedEffects(v) }
     fun setCheckins(v: Boolean) = viewModelScope.launch { c.settings.setCheckins(v) }
 

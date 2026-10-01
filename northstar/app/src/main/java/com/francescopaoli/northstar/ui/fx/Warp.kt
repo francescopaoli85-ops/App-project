@@ -25,7 +25,7 @@ import kotlin.random.Random
 @Composable
 fun WarpOverlay(onFinished: () -> Unit, durationMs: Int = 1300) {
     val p = remember { Animatable(0f) }
-    val stars = remember {
+    val stars = remember(Neon.palette) {
         val rnd = Random(77)
         val colors = listOf(Color.White, Neon.Cyan, Neon.Lilac, Color(0xFFE6DEFF))
         List(170) { Triple(rnd.nextFloat() * 6.283f, 0.02f + rnd.nextFloat() * 0.5f, colors[rnd.nextInt(colors.size)]) }

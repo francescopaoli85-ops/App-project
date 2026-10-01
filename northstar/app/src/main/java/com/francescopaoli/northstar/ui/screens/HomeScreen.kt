@@ -1,10 +1,11 @@
 package com.francescopaoli.northstar.ui.screens
 
+import androidx.compose.foundation.layout.Box
+import com.francescopaoli.northstar.ui.fx.spin
 import com.francescopaoli.northstar.ui.fx.animatedInt
 import com.francescopaoli.northstar.ui.fx.sharedElementOf
 import com.francescopaoli.northstar.ui.fx.sharedTextOf
 import com.francescopaoli.northstar.domain.Engagement
-import com.francescopaoli.northstar.ui.components.FlameIcon
 import com.francescopaoli.northstar.ui.components.WeeklyStepRow
 import com.francescopaoli.northstar.ads.AdPlacement
 import com.francescopaoli.northstar.ads.NativeAdCard
@@ -68,6 +69,7 @@ fun HomeScreen(
     onCalendar: () -> Unit,
     onTab: (Tab) -> Unit,
     onWeek: () -> Unit = {},
+    onPolaris: () -> Unit = {},
 ) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
@@ -102,12 +104,17 @@ fun HomeScreen(
                                 Text("Ciao $name", color = Neon.Text2, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                                 Text("I tuoi obiettivi", color = Color.White, style = MaterialTheme.typography.headlineMedium)
                             }
-                            GradientIconTile(NsIcons.Star, 44.dp, 14.dp, 20.dp)
+                            Box(contentAlignment = Alignment.Center) {
+                                com.francescopaoli.northstar.ui.fx.StarRays(Modifier.size(78.dp))
+                                GradientIconTile(
+                                    NsIcons.Star, 44.dp, 14.dp, 20.dp,
+                                    Modifier.clip(RoundedCornerShape(14.dp)).clickable(onClickLabel = "La tua Stella Polare", onClick = onPolaris),
+                                )
+                            }
                         }
                         Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
                             Stat(open.size, "attivi", Neon.Lilac, Modifier.pop(300))
                             Stat(achieved, "raggiunti", Neon.Cyan, Modifier.pop(400))
-                            StreakStat(streak, Modifier.pop(500), onWeek)
                         }
                     }
                 }
@@ -118,13 +125,16 @@ fun HomeScreen(
                     )
                 }
                 // il collegamento al calendario si propone solo dopo il primo obiettivo
-                if (!settings.calendarConnected && goals.isNotEmpty()) {
-                    item { CalendarBanner(onCalendar, Modifier.enter(0, baseDelayMs = 150)) }
+                val bannerHidden = java.time.LocalDate.now().toEpochDay() < settings.calendarBannerHiddenUntil
+                if (!settings.calendarConnected && goals.isNotEmpty() && !bannerHidden) {
+                    item(key = "calendar") {
+                        CalendarBanner(onCalendar, vm::hideCalendarBanner, Modifier.enter(0, baseDelayMs = 150).animateItem())
+                    }
                 }
                 if (open.isNotEmpty()) {
                     item(key = "week") {
                         ThisWeekCard(
-                            open, doneThisWeek.map { it.second.id }.toSet(),
+                            open, doneThisWeek.map { it.second.id }.toSet(), streak,
                             onToggle = { g, a -> vm.toggleAction(g, a) },
                             onPick = onOpen, onWeek = onWeek,
                             modifier = Modifier.enter(0, baseDelayMs = 250),
@@ -153,23 +163,25 @@ private fun Stat(n: Int, label: String, color: Color, modifier: Modifier) {
     }
 }
 
+/**
+ * Invito a collegare Google Calendar: chiaro su cosa fa, con un bottone vero
+ * e una X per nasconderlo (torna dopo una settimana).
+ */
 @Composable
-private fun CalendarBanner(onClick: () -> Unit, modifier: Modifier) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Neon.Violet.copy(alpha = 0.14f))
-            .border(1.dp, Neon.Violet.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 13.dp, vertical = 11.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Icon(NsIcons.Bell, null, tint = Neon.Cyan, modifier = Modifier.size(16.dp).bellSwing(2200))
-        Text("Funziona meglio con Google Calendar collegato", color = Neon.TextMid, fontSize = 11.5.sp,
-            fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-        Icon(NsIcons.Chevron, null, tint = Neon.Text2, modifier = Modifier.size(13.dp).nudgeX())
+private fun CalendarBanner(onConnect: () -> Unit, onHide: () -> Unit, modifier: Modifier) {
+    com.francescopaoli.northstar.ui.components.NeonColumnCard(modifier.fillMaxWidth(), corner = 17.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            GradientIconTile(NsIcons.Calendar, 40.dp, 12.dp, 18.dp, floating = false, iconModifier = Modifier.bellSwing(2600))
+            Column(Modifier.weight(1f)) {
+                Text("Collega Google Calendar", color = Neon.Text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("Le scadenze finiscono da sole nella tua agenda.", color = Neon.Text2, fontSize = 12.sp, lineHeight = 17.sp)
+            }
+            Icon(
+                NsIcons.Close, "Nascondi", tint = Neon.Text3,
+                modifier = Modifier.size(28.dp).clip(RoundedCornerShape(14.dp)).clickable(onClickLabel = "Nascondi", onClick = onHide).padding(7.dp),
+            )
+        }
+        GradientButton("Collega", onConnect, Modifier.fillMaxWidth().padding(top = 12.dp), corner = 12.dp, glowing = false)
     }
 }
 
@@ -214,22 +226,6 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onClick: () -> Unit) {
     }
 }
 
-/** Fiammella + "N sett. di fila": tocca per il riepilogo della settimana. */
-@Composable
-private fun StreakStat(weeks: Int, modifier: Modifier, onClick: () -> Unit) {
-    Row(
-        modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(end = 4.dp),
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        FlameIcon(22.dp, lit = weeks > 0, modifier = Modifier.padding(bottom = 3.dp))
-        Text(" ${animatedInt(weeks, 900, 450)}", color = if (weeks > 0) Color(0xFFFFB547) else Neon.Text3, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
-        Text(
-            if (weeks == 1) " settimana" else " sett. di fila",
-            color = Neon.Text2, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 4.dp),
-        )
-    }
-}
-
 /**
  * "Questa settimana": un piccolo passo per ogni obiettivo aperto, da spuntare al volo.
  * È il motivo per tornare nell'app qualche volta a settimana.
@@ -238,6 +234,7 @@ private fun StreakStat(weeks: Int, modifier: Modifier, onClick: () -> Unit) {
 private fun ThisWeekCard(
     open: List<Goal>,
     doneIds: Set<String>,
+    streak: Int,
     onToggle: (goalId: String, actionId: String) -> Unit,
     onPick: (goalId: String) -> Unit,
     onWeek: () -> Unit,
@@ -250,7 +247,10 @@ private fun ThisWeekCard(
                 modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onWeek).padding(4.dp))
         }
         Text(
-            if (doneIds.isEmpty()) "Un passo piccolo basta per tenere viva la serie." else "Ottimo: ${doneIds.size} ${if (doneIds.size == 1) "passo fatto" else "passi fatti"} questa settimana.",
+            buildString {
+                append(if (doneIds.isEmpty()) "Basta un passo piccolo." else "Ottimo: ${doneIds.size} ${if (doneIds.size == 1) "passo fatto" else "passi fatti"} questa settimana.")
+                if (streak > 1) append(" · $streak settimane di fila")
+            },
             color = Neon.Text2, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp),
         )
         open.take(3).forEachIndexed { i, g ->

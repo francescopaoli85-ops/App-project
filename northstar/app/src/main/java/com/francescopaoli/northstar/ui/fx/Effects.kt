@@ -172,17 +172,6 @@ fun Modifier.rock(angle: Float = 90f, durationMs: Int = 2000): Modifier = compos
     graphicsLayer { rotationZ = r }
 }
 
-/** Fiammella che tremola: scala e rotazione irregolari. */
-fun Modifier.flicker(): Modifier = composed {
-    val t = rememberInfiniteTransition(label = "fl")
-    val s by t.animateFloat(0.92f, 1.08f, infiniteRepeatable(tween(380, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "s")
-    val r by t.animateFloat(-6f, 6f, infiniteRepeatable(tween(610, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "r")
-    graphicsLayer {
-        scaleX = 2f - s; scaleY = s; rotationZ = r
-        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
-    }
-}
-
 /** Scintillio (twinkle): opacità e scala pulsanti. */
 fun Modifier.twinkle(durationMs: Int = 2200, delayMs: Int = 0): Modifier = composed {
     val v by rememberInfiniteTransition(label = "tw").animateFloat(

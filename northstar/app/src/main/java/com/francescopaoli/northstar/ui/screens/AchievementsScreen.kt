@@ -34,7 +34,8 @@ import com.francescopaoli.northstar.ui.MainViewModel
 import com.francescopaoli.northstar.ui.components.GradientIconTile
 import com.francescopaoli.northstar.ui.components.NeonCard
 import com.francescopaoli.northstar.ui.components.NsIcons
-import com.francescopaoli.northstar.ui.components.RoundIconButton
+import com.francescopaoli.northstar.ui.components.BottomNav
+import com.francescopaoli.northstar.ui.components.Tab
 import androidx.compose.foundation.layout.navigationBarsPadding
 import com.francescopaoli.northstar.ui.fx.Blob
 import com.francescopaoli.northstar.ui.fx.BlobLayer
@@ -48,7 +49,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 @Composable
-fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
+fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val showAds by vm.showAds.collectAsStateWithLifecycle()
     val done = goals.filter { it.status == GoalStatus.ACHIEVED }.sortedByDescending { it.achievedAt ?: 0 }
@@ -58,13 +59,11 @@ fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
             // header celebrativo con scintille che salgono
             Box(
                 Modifier.fillMaxWidth().background(
-                    Brush.linearGradient(listOf(Neon.Surface, Color(0xFF2E1A5C), Neon.SurfaceHi)),
+                    Brush.linearGradient(listOf(Neon.Surface, androidx.compose.ui.graphics.lerp(Neon.SurfaceHi, Neon.Violet, 0.25f), Neon.SurfaceHi)),
                 ),
             ) {
                 BlobLayer(listOf(Blob(0f, 0f, 0.5f, Neon.Violet, 0.3f)), Modifier.matchParentSize())
                 RisingSparks(Modifier.matchParentSize())
-                RoundIconButton(NsIcons.Back, "Indietro", onBack,
-                    Modifier.statusBarsPadding().padding(start = 22.dp, top = 24.dp))
                 Icon(NsIcons.Sparkle, null, tint = Neon.Cyan, modifier = Modifier.padding(start = 40.dp, top = 50.dp).size(9.dp).twinkle())
                 Icon(NsIcons.Sparkle, null, tint = Neon.Lilac, modifier = Modifier.align(Alignment.TopEnd).padding(end = 54.dp, top = 70.dp).size(7.dp).twinkle(2200, 600))
                 Column(
@@ -80,7 +79,7 @@ fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
                 }
             }
             LazyColumn(
-                Modifier.weight(1f).navigationBarsPadding(),
+                Modifier.weight(1f),
                 contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 40.dp),
                 verticalArrangement = Arrangement.spacedBy(11.dp),
             ) {
@@ -110,6 +109,7 @@ fun AchievementsScreen(vm: MainViewModel, onBack: () -> Unit) {
                     if (adSlot == i + 1) NativeAdCard(Modifier.fillMaxWidth().padding(top = 11.dp).enter(0, baseDelayMs = 450))
                 }
             }
+            BottomNav(Tab.TRAGUARDI, onTab)
         }
     }
 }

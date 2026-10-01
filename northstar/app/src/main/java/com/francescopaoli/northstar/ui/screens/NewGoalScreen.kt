@@ -297,7 +297,7 @@ private fun VoiceInput(
         Box(Modifier.size(150.dp), contentAlignment = Alignment.Center) {
             PulseRings(listening || speaking, Modifier.fillMaxSize())
             Canvas(Modifier.size(116.dp).spin(20000)) {
-                drawCircle(Color(0xFF4A3F82).copy(alpha = 0.6f), style = Stroke(1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 14f))))
+                drawCircle(Neon.Inactive.copy(alpha = 0.6f), style = Stroke(1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 14f))))
             }
             // sfera liquida: si deforma con la voce
             LiquidOrb(level, listening, Modifier.size(150.dp))

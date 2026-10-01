@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.francescopaoli.northstar.domain.Engagement
 import com.francescopaoli.northstar.ui.MainViewModel
-import com.francescopaoli.northstar.ui.components.FlameIcon
 import com.francescopaoli.northstar.ui.components.GradientButton
 import com.francescopaoli.northstar.ui.components.NeonCard
 import com.francescopaoli.northstar.ui.components.NeonColumnCard
@@ -66,8 +65,8 @@ fun WeekSummaryScreen(vm: MainViewModel, onClose: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(Modifier.size(130.dp), contentAlignment = Alignment.Center) {
-                    if (streak > 0) BurstRings(Modifier.fillMaxSize(), listOf(Color(0xFFFFC107), Neon.Violet, Color(0xFFFF6B3D)))
-                    FlameIcon(64.dp, lit = streak > 0, modifier = Modifier.pop(0, -12f))
+                    BurstRings(Modifier.fillMaxSize())
+                    com.francescopaoli.northstar.ui.components.GradientIconTile(NsIcons.Star, 68.dp, 20.dp, 30.dp, Modifier.pop(0, -12f))
                 }
                 Text("La tua settimana", color = Color.White, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.enter(0))
                 Text(
@@ -80,7 +79,7 @@ fun WeekSummaryScreen(vm: MainViewModel, onClose: () -> Unit) {
                 )
                 Row(Modifier.fillMaxWidth().enter(2), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
                     BigStat("${done.size}", if (done.size == 1) "passo fatto" else "passi fatti", Neon.Cyan, Modifier.weight(1f).pop(300))
-                    BigStat("$streak", "sett. di fila", Color(0xFFFFB547), Modifier.weight(1f).pop(400))
+                    BigStat("$streak", "sett. di fila", Neon.Lilac, Modifier.weight(1f).pop(400))
                     BigStat("${open.size}", "in corso", Neon.Lilac, Modifier.weight(1f).pop(500))
                 }
                 if (done.isNotEmpty()) NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {

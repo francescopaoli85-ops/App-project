@@ -63,7 +63,7 @@ import com.francescopaoli.northstar.ui.fx.shimmer
 import com.francescopaoli.northstar.ui.theme.Neon
 
 /** Bordo "di vetro": più luminoso in alto a sinistra, come se prendesse luce. */
-val GlassEdge = Brush.linearGradient(listOf(Color.White.copy(alpha = 0.18f), Neon.Violet.copy(alpha = 0.34f), Neon.Violet.copy(alpha = 0.10f)))
+val GlassEdge: Brush get() = Brush.linearGradient(listOf(Color.White.copy(alpha = 0.18f), Neon.Violet.copy(alpha = 0.34f), Neon.Violet.copy(alpha = 0.10f)))
 
 /**
  * Vetro smerigliato: sfoca davvero la nebulosa che c'è dietro (Android 12+).
@@ -111,8 +111,8 @@ fun GradientButton(
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(text, color = if (enabled) Color.White else Neon.Text3, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            if (trailing != null) Icon(trailing, null, tint = Color.White, modifier = Modifier.size(17.dp))
+            Text(text, color = if (enabled) Neon.OnAccent else Neon.Text3, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            if (trailing != null) Icon(trailing, null, tint = Neon.OnAccent, modifier = Modifier.size(17.dp))
         }
     }
 }
@@ -243,7 +243,7 @@ fun GradientIconTile(
             .clip(RoundedCornerShape(corner))
             .animatedGradient(corner),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, null, tint = Color.White, modifier = iconModifier.size(iconSize)) }
+    ) { Icon(icon, null, tint = Neon.OnAccent, modifier = iconModifier.size(iconSize)) }
 }
 
 /** Etichetta del criterio / categoria. */

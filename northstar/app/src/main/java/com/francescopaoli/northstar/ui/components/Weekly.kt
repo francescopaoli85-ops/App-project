@@ -26,46 +26,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.francescopaoli.northstar.ui.fx.flicker
 import com.francescopaoli.northstar.ui.fx.pop
 import com.francescopaoli.northstar.ui.theme.Neon
-
-private val FlameBrush = Brush.verticalGradient(listOf(Color(0xFFFFC107), Color(0xFFFF6B3D), Neon.Violet))
-
-/** Fiammella della serie: colorata e tremolante se attiva, spenta se la serie è 0. */
-@Composable
-fun FlameIcon(size: Dp, lit: Boolean, modifier: Modifier = Modifier) {
-    Icon(
-        NsIcons.Flame, null,
-        tint = if (lit) Color.White else Neon.Inactive,
-        modifier = modifier
-            .size(size)
-            .then(
-                if (!lit) Modifier
-                else Modifier
-                    .flicker()
-                    // gradiente giallo → arancio → viola applicato solo sulla forma dell'icona
-                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(FlameBrush, blendMode = BlendMode.SrcIn)
-                    },
-            ),
-    )
-}
 
 /** Riga del passo della settimana: spunta rapida senza aprire il dettaglio. */
 @Composable

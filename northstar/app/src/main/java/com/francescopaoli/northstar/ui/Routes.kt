@@ -12,6 +12,7 @@ object Routes {
     const val CELEBRATE = "celebrate/{id}"
     const val SETTINGS = "settings"
     const val WEEK = "week"
+    const val POLARIS = "polaris"
 
     fun detail(id: String) = "detail/$id"
     fun checkin(id: String) = "checkin/$id"

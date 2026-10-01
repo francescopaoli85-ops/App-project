@@ -60,7 +60,7 @@ fun rememberClock(fps: Int = 60): androidx.compose.runtime.State<Float> {
     return t
 }
 
-private val palette = listOf(Neon.Cyan, Neon.Lilac, Neon.Violet)
+private val palette: List<Color> get() = listOf(Neon.Cyan, Neon.Lilac, Neon.Violet)
 
 /** Blob di colore: posizione in frazioni dello schermo, raggio in frazioni della larghezza. */
 data class Blob(val x: Float, val y: Float, val radius: Float, val color: Color, val alpha: Float = 0.5f, val periodS: Float = 3.2f)
@@ -125,7 +125,7 @@ private class Particle(val x: Float, val y: Float, val r: Float, val color: Colo
 /** Puntini che salgono/scendono con cambio di opacità. */
 @Composable
 fun ParticleField(count: Int, modifier: Modifier = Modifier, seed: Int = 1) {
-    val ps = remember(count, seed) {
+    val ps = remember(count, seed, Neon.palette) {
         val rnd = Random(seed)
         List(count) { i ->
             // distribuzione a griglia sfalsata: ben sparsi su tutto lo schermo
@@ -158,7 +158,7 @@ private class Piece(val x: Float, val w: Float, val round: Boolean, val color: C
 /** Coriandoli che cadono in continuazione (schermata Celebrazione). */
 @Composable
 fun ConfettiRain(modifier: Modifier = Modifier, count: Int = 26) {
-    val pieces = remember {
+    val pieces = remember(Neon.palette) {
         val rnd = Random(7)
         val colors = listOf(Neon.Cyan, Neon.Lilac, Neon.Violet, Color.White, Color(0xFFFFC107))
         List(count) {
@@ -185,7 +185,7 @@ fun ConfettiRain(modifier: Modifier = Modifier, count: Int = 26) {
 /** Scintille che salgono (header dei Traguardi). */
 @Composable
 fun RisingSparks(modifier: Modifier = Modifier, count: Int = 12) {
-    val sparks = remember {
+    val sparks = remember(Neon.palette) {
         val rnd = Random(3)
         List(count) { Piece(rnd.nextFloat(), 3f + rnd.nextFloat() * 3f, rnd.nextBoolean(), palette[rnd.nextInt(3)],
             4.5f + rnd.nextFloat() * 1.5f, rnd.nextFloat() * 5f, 0f) }
@@ -259,7 +259,7 @@ private fun DrawScope.orbit(turns: Float, c: Offset, radius: Float, stars: List<
 @Composable
 fun VoiceWave(level: Float, active: Boolean, modifier: Modifier = Modifier) {
     val tr = rememberInfiniteTransition(label = "wave")
-    val colors = listOf(Neon.Violet, Color(0xFF9857F0), Color(0xFF5FA8F5), Color(0xFF3EC2EE), Neon.Cyan)
+    val colors = List(5) { androidx.compose.ui.graphics.lerp(Neon.Violet, Neon.Cyan, it / 4f) }
     val bars = colors.indices.map { i ->
         tr.animateFloat(0.25f, 1f, infiniteRepeatable(tween(425, i * 150, FastOutSlowInEasing), RepeatMode.Reverse), label = "b$i")
     }

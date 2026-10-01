@@ -50,6 +50,7 @@ import com.francescopaoli.northstar.ui.screens.HomeScreen
 import com.francescopaoli.northstar.ui.screens.LoginScreen
 import com.francescopaoli.northstar.ui.screens.NewGoalScreen
 import com.francescopaoli.northstar.ui.screens.SettingsScreen
+import com.francescopaoli.northstar.ui.screens.PolarisScreen
 import com.francescopaoli.northstar.ui.screens.WeekSummaryScreen
 import com.francescopaoli.northstar.ui.theme.Neon
 
@@ -63,6 +64,9 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
         android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
     }
     val fx = FxConfig(full = !settings.reducedEffects && !systemAnimOff)
+    // tema scelto: cambiando la palette si ricolora tutta l'app
+    val palette = com.francescopaoli.northstar.ui.theme.Palettes.byId(settings.theme)
+    androidx.compose.runtime.SideEffect { com.francescopaoli.northstar.ui.theme.Neon.palette = palette }
     val parallax = rememberParallax(fx.full)
     CompositionLocalProvider(LocalFx provides fx, LocalParallax provides parallax) {
         SparkHost(enabled = fx.full) { RootContent(vm, deepLink, onDeepLinkHandled) }
@@ -125,6 +129,7 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
                     onCalendar = { nav.navigate(Routes.CALENDAR) },
                     onTab = { nav.goTab(it) },
                     onWeek = { nav.navigate(Routes.WEEK) },
+                    onPolaris = { nav.navigate(Routes.POLARIS) },
                 )
               }
             }
@@ -168,9 +173,17 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
                     onUndo = { vm.undoAchieve(id); nav.navigate(Routes.detail(id)) { popUpTo(Routes.HOME) } },
                 )
             }
-            composable(Routes.ACHIEVEMENTS) { AchievementsScreen(vm, onBack = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) }) }
+            composable(Routes.ACHIEVEMENTS) { AchievementsScreen(vm, onTab = { nav.goTab(it) }) }
             composable(Routes.CALENDAR) {
                 CalendarConnectScreen(vm, onDone = { if (!nav.popBackStack(Routes.HOME, false)) nav.navigate(Routes.HOME) })
+            }
+            composable(Routes.POLARIS) {
+                PolarisScreen(
+                    vm,
+                    onClose = { if (!nav.popBackStack()) nav.navigate(Routes.HOME) },
+                    onOpen = { nav.navigate(Routes.detail(it)) },
+                    onNew = { nav.navigate(Routes.NEW) },
+                )
             }
             composable(Routes.WEEK) {
                 WeekSummaryScreen(vm, onClose = { if (!nav.popBackStack(Routes.HOME, false)) nav.navigate(Routes.HOME) })

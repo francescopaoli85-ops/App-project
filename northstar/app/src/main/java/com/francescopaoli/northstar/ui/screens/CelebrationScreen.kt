@@ -80,7 +80,7 @@ fun CelebrationScreen(vm: MainViewModel, id: String, onAchievements: () -> Unit,
                     modifier = Modifier.enter(0, baseDelayMs = 350))
                 Text(
                     "\"${g?.title.orEmpty()}\" — fatto. Da un desiderio vago a un risultato reale.",
-                    color = Color(0xFFB4A9D6), fontSize = 14.sp, lineHeight = 22.sp, textAlign = TextAlign.Center,
+                    color = Neon.TextMid, fontSize = 14.sp, lineHeight = 22.sp, textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 10.dp).widthIn(max = 280.dp).enter(1, stepMs = 130, baseDelayMs = 350),
                 )
                 Row(

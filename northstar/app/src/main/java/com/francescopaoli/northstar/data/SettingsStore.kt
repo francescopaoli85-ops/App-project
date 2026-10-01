@@ -28,6 +28,10 @@ data class Settings(
     val adFree: Boolean = false,
     /** Meno effetti grafici: niente shader, parallasse e scintille (risparmia batteria). */
     val reducedEffects: Boolean = false,
+    /** Tema scelto (id di Palettes). */
+    val theme: String = "neon",
+    /** Giorno (epochDay) fino a cui il banner Calendar resta nascosto. */
+    val calendarBannerHiddenUntil: Long = 0,
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -43,6 +47,8 @@ class SettingsStore(private val context: Context) {
         val localName = stringPreferencesKey("local_name")
         val adFree = booleanPreferencesKey("ad_free")
         val reducedFx = booleanPreferencesKey("reduced_fx")
+        val theme = stringPreferencesKey("theme")
+        val bannerHidden = longPreferencesKey("cal_banner_hidden_until")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -59,6 +65,8 @@ class SettingsStore(private val context: Context) {
         localName = this[K.localName],
         adFree = this[K.adFree] ?: false,
         reducedEffects = this[K.reducedFx] ?: false,
+        theme = this[K.theme] ?: "neon",
+        calendarBannerHiddenUntil = this[K.bannerHidden] ?: 0,
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -79,6 +87,8 @@ class SettingsStore(private val context: Context) {
     suspend fun lastSent(tag: String): Long? = context.dataStore.data.first()[longPreferencesKey("sent_$tag")]
     suspend fun markSent(tag: String, period: Long) = context.dataStore.edit { it[longPreferencesKey("sent_$tag")] = period }
 
+    suspend fun setTheme(id: String) = context.dataStore.edit { it[K.theme] = id }
+    suspend fun hideCalendarBanner(untilEpochDay: Long) = context.dataStore.edit { it[K.bannerHidden] = untilEpochDay }
     suspend fun setReducedEffects(v: Boolean) = context.dataStore.edit { it[K.reducedFx] = v }
     suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {
