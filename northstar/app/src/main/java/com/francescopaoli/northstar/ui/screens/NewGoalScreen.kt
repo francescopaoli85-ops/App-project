@@ -118,7 +118,13 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
     LaunchedEffect(ng.step) {
         if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) ng.enterStep()
     }
-    DisposableEffect(Unit) { onDispose { ng.voice.silence() } }
+    DisposableEffect(Unit) { onDispose { ng.voice.silence(); vm.sound.music.setDucked(false) } }
+    // musica a strati: ogni passo aggiunge strumenti, il riepilogo è l'apoteosi (livello 7)
+    LaunchedEffect(ng.step) { vm.sound.music.setScene(com.francescopaoli.northstar.audio.Scene.Flow(ng.step + 1)) }
+    // quando la guida parla o ascolta, la musica si abbassa
+    LaunchedEffect(voiceState.speaking, voiceState.listening) {
+        vm.sound.music.setDucked(voiceState.speaking || voiceState.listening)
+    }
     // app in secondo piano (tasto Home, altra app, schermo spento): la voce si ferma subito
     androidx.lifecycle.compose.LifecycleStartEffect(ng) {
         ng.voice.resume()
@@ -198,7 +204,7 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                             else -> "Avanti"
                         },
                         onClick = {
-                            if (!ng.isSummary) ng.next()
+                            if (!ng.isSummary) { vm.sound.sfx.step(ng.step + 1); ng.next() }
                             else if (!saving) {
                                 saving = true
                                 val first = vm.goals.value.isEmpty()
@@ -209,6 +215,7 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                         },
                         modifier = Modifier.weight(1.4f),
                         enabled = ng.canContinue() && !saving,
+                        tapSound = false,
                     )
                 }
             }

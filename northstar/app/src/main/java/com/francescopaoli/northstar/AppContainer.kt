@@ -25,6 +25,8 @@ class AppContainer(context: Context) {
     val ads = AdsManager(context, settings)
     val billing = BillingManager(context, settings, appScope)
     private val local by lazy { LocalGoalRepository(context) }
+    /** Musica e effetti sonori (creati al primo uso). */
+    val sound by lazy { com.francescopaoli.northstar.audio.SoundManager(context) }
 
     /** Il repository giusto per chi è loggato. */
     fun repositoryFor(session: Session): GoalRepository = when (session) {

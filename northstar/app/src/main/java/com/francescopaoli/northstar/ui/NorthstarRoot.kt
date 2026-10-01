@@ -38,6 +38,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.francescopaoli.northstar.AppContainer
 import com.francescopaoli.northstar.ui.components.Tab
 import com.francescopaoli.northstar.ui.fx.NeonBackdrop
@@ -73,7 +74,12 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
     val palette = com.francescopaoli.northstar.ui.theme.Palettes.byId(settings.theme)
     androidx.compose.runtime.SideEffect { com.francescopaoli.northstar.ui.theme.Neon.palette = palette }
     val parallax = rememberParallax(fx.full && fx.animated)
-    CompositionLocalProvider(LocalFx provides fx, LocalParallax provides parallax) {
+    // musica ed effetti seguono le impostazioni
+    LaunchedEffect(settings) { container.sound.apply(settings) }
+    CompositionLocalProvider(
+        LocalFx provides fx, LocalParallax provides parallax,
+        com.francescopaoli.northstar.audio.LocalSound provides container.sound,
+    ) {
         SparkHost(enabled = fx.full && fx.animated) { RootContent(vm, deepLink, onDeepLinkHandled) }
     }
 }
@@ -97,6 +103,16 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
 
     val nav = rememberNavController()
     val start = remember { if (session is SessionState.LoggedIn) Routes.HOME else Routes.LOGIN }
+
+    // musica per schermata: il percorso guida i suoi livelli da sé, la festa resta all'apoteosi
+    val route = nav.currentBackStackEntryAsState().value?.destination?.route
+    LaunchedEffect(route) {
+        when (route) {
+            null, Routes.NEW -> Unit
+            Routes.CELEBRATE -> vm.sound.music.setScene(com.francescopaoli.northstar.audio.Scene.Flow(7))
+            else -> vm.sound.music.setScene(com.francescopaoli.northstar.audio.Scene.Ambient)
+        }
+    }
 
     // login/logout: sposta la navigazione sulla schermata giusta
     LaunchedEffect(session) {

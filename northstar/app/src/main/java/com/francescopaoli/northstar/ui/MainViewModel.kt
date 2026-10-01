@@ -109,6 +109,7 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
             deadlineEpochDay = deadline.toEpochDay(),
             summary = SummaryBuilder.build(answers, deadline),
         )
+        c.sound.sfx.success()
         c.settings.setProfiledMode(PersonalityProfiler.calendarMode(PersonalityProfiler.Signals(answers, revisions)))
         repo.value?.upsert(goal)
         afterGoalChanged(goal, isNew = true)
@@ -121,6 +122,7 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
 
     fun toggleAction(id: String, actionId: String) = goal(id)?.let { g ->
         val now = System.currentTimeMillis()
+        if (g.actions.any { it.id == actionId && !it.done }) c.sound.sfx.done()
         save(g.copy(actions = g.actions.map {
             if (it.id == actionId) it.copy(done = !it.done, doneAt = if (it.done) null else now) else it
         }))
@@ -131,6 +133,7 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
     }
 
     fun achieve(id: String) = goal(id)?.let {
+        c.sound.sfx.success()
         save(it.copy(status = GoalStatus.ACHIEVED, achievedAt = System.currentTimeMillis()))
     }
 
@@ -230,6 +233,12 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
         c.settings.hideCalendarBanner(java.time.LocalDate.now().plusDays(7).toEpochDay())
     }
     fun setReducedEffects(v: Boolean) = viewModelScope.launch { c.settings.setReducedEffects(v) }
+    fun setMusicOn(v: Boolean) = viewModelScope.launch { c.settings.setMusicOn(v) }
+    fun setAmbientSong(id: String) = viewModelScope.launch { c.settings.setAmbientSong(id) }
+    fun setMusicVolume(v: Int) = viewModelScope.launch { c.settings.setMusicVolume(v) }
+    fun setSfxOn(v: Boolean) = viewModelScope.launch { c.settings.setSfxOn(v) }
+    /** Suoni per le schermate. */
+    val sound get() = c.sound
     fun setCheckins(v: Boolean) = viewModelScope.launch { c.settings.setCheckins(v) }
 
     class Factory(private val c: AppContainer) : ViewModelProvider.Factory {

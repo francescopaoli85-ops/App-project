@@ -26,6 +26,8 @@ class MainActivity : ComponentActivity() {
         val container = (application as NorthstarApp).container
         container.ads.gatherConsent(this)
         container.billing.connect()
+        // i tasti volume regolano la musica
+        volumeControlStream = android.media.AudioManager.STREAM_MUSIC
         setContent {
             NorthstarTheme {
                 NorthstarRoot(
@@ -35,6 +37,17 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    /** Suoni solo con l'app davanti: tasto Home, altra app o schermo spento = silenzio. */
+    override fun onStart() {
+        super.onStart()
+        (application as NorthstarApp).container.sound.setForeground(true)
+    }
+
+    override fun onStop() {
+        (application as NorthstarApp).container.sound.setForeground(false)
+        super.onStop()
     }
 
     override fun onNewIntent(intent: Intent) {

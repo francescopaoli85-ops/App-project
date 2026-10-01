@@ -97,8 +97,11 @@ fun GradientButton(
     corner: Dp = 14.dp,
     trailing: ImageVector? = null,
     glowing: Boolean = true,
+    /** false se lo schermo suona già un effetto suo per questo bottone. */
+    tapSound: Boolean = true,
 ) {
     val src = remember { MutableInteractionSource() }
+    val sound = com.francescopaoli.northstar.audio.LocalSound.current
     Box(
         modifier
             .scale(pressScale(src))
@@ -106,7 +109,7 @@ fun GradientButton(
             .clip(RoundedCornerShape(corner))
             .then(if (enabled) Modifier.animatedGradient(corner) else Modifier.background(Neon.Track))
             .shimmer(corner, if (enabled) 0.3f else 0f)
-            .clickable(src, null, enabled = enabled, role = Role.Button, onClick = onClick)
+            .clickable(src, null, enabled = enabled, role = Role.Button) { if (tapSound) sound?.sfx?.tap(); onClick() }
             .padding(horizontal = 18.dp, vertical = 15.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -121,12 +124,13 @@ fun GradientButton(
 @Composable
 fun GhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val src = remember { MutableInteractionSource() }
+    val sound = com.francescopaoli.northstar.audio.LocalSound.current
     Box(
         modifier
             .scale(pressScale(src))
             .clip(RoundedCornerShape(14.dp))
             .border(1.5.dp, Neon.Violet.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
-            .clickable(src, null, role = Role.Button, onClick = onClick)
+            .clickable(src, null, role = Role.Button) { sound?.sfx?.tap(); onClick() }
             .padding(14.dp),
         contentAlignment = Alignment.Center,
     ) { Text(text, color = Neon.Text2, fontWeight = FontWeight.SemiBold, fontSize = 13.5.sp) }
@@ -279,6 +283,7 @@ enum class Tab { HOME, TRAGUARDI, IMPOSTAZIONI }
 
 @Composable
 fun BottomNav(selected: Tab, onSelect: (Tab) -> Unit) {
+    val sound = com.francescopaoli.northstar.audio.LocalSound.current
     Row(
         Modifier
             .fillMaxWidth()
@@ -297,7 +302,7 @@ fun BottomNav(selected: Tab, onSelect: (Tab) -> Unit) {
             Column(
                 Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable(role = Role.Tab) { onSelect(tab) }
+                    .clickable(role = Role.Tab) { if (!on) sound?.sfx?.swoosh(); onSelect(tab) }
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),

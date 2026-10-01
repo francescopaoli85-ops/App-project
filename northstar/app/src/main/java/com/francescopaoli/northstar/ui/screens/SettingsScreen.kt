@@ -20,6 +20,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -110,6 +111,38 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                 }
 
                 NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {
+                    Label("Suoni")
+                    Toggle("Musica", s.musicOn, vm::setMusicOn)
+                    if (s.musicOn) {
+                        Text("Sottofondo dell'app", color = Neon.Text, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp, bottom = 8.dp))
+                        Segmented(
+                            com.francescopaoli.northstar.audio.AmbientSong.entries.map { it.id to it.label },
+                            s.ambientSong, vm::setAmbientSong,
+                        )
+                        Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("Volume musica", color = Neon.TextMid, fontSize = 13.5.sp, modifier = Modifier.weight(1f))
+                            Text("${s.musicVolume}%", color = Neon.Text2, fontSize = 12.sp)
+                        }
+                        // il valore si salva quando si lascia il cursore; intanto si sente subito
+                        var vol by androidx.compose.runtime.remember(s.musicVolume) { androidx.compose.runtime.mutableFloatStateOf(s.musicVolume.toFloat()) }
+                        androidx.compose.material3.Slider(
+                            value = vol,
+                            onValueChange = { vol = it; vm.sound.music.setVolume(it / 100f) },
+                            onValueChangeFinished = { vm.setMusicVolume(vol.toInt()) },
+                            valueRange = 0f..100f,
+                            colors = androidx.compose.material3.SliderDefaults.colors(
+                                thumbColor = Neon.Cyan, activeTrackColor = Neon.Violet, inactiveTrackColor = Neon.Track,
+                            ),
+                        )
+                    }
+                    Toggle("Effetti sonori", s.sfxOn, vm::setSfxOn)
+                    Text(
+                        "Nel percorso la musica cresce a ogni risposta. Si abbassa quando parla la voce guida e si ferma appena esci dall'app.",
+                        color = Neon.Text3, fontSize = 11.sp, lineHeight = 15.sp,
+                    )
+                }
+
+                NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {
                     Label("Pubblicità")
                     if (s.adFree) {
                         Text("Pubblicità rimossa ✦ Grazie per il supporto!", color = Neon.Cyan, fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
@@ -150,6 +183,27 @@ private fun Toggle(label: String, on: Boolean, onChange: (Boolean) -> Unit) {
                 uncheckedTrackColor = Neon.Track, uncheckedThumbColor = Neon.Text3, uncheckedBorderColor = Neon.Track,
             ),
         )
+    }
+}
+
+/** Selettore a più opzioni (id, etichetta), stesso stile di [ModeSwitch]. */
+@Composable
+private fun Segmented(options: List<Pair<String, String>>, selected: String, onPick: (String) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Neon.Track).padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        options.forEach { (id, label) ->
+            val on = id == selected
+            Text(
+                label, color = if (on) Neon.OnAccent else Neon.Text2, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f).clip(RoundedCornerShape(9.dp))
+                    .then(if (on) Modifier.animatedGradient(9.dp) else Modifier)
+                    .clickable(role = Role.RadioButton) { onPick(id) }
+                    .padding(vertical = 10.dp),
+            )
+        }
     }
 }
 

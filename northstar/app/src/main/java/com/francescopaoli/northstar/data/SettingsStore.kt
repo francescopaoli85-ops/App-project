@@ -34,6 +34,13 @@ data class Settings(
     val calendarBannerHiddenUntil: Long = 0,
     /** Temi per cui l'utente ha scelto lo sfondo statico. */
     val staticThemes: Set<String> = emptySet(),
+    /** Musica di sottofondo e del percorso. */
+    val musicOn: Boolean = true,
+    /** Canzone di sottofondo: "energy" o "calm". */
+    val ambientSong: String = "energy",
+    /** Volume musica 0..100 (basso di default: è un sottofondo). */
+    val musicVolume: Int = 45,
+    val sfxOn: Boolean = true,
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -52,6 +59,10 @@ class SettingsStore(private val context: Context) {
         val theme = stringPreferencesKey("theme")
         val bannerHidden = longPreferencesKey("cal_banner_hidden_until")
         val staticThemes = androidx.datastore.preferences.core.stringSetPreferencesKey("static_themes")
+        val musicOn = booleanPreferencesKey("music_on")
+        val ambientSong = stringPreferencesKey("ambient_song")
+        val musicVolume = androidx.datastore.preferences.core.intPreferencesKey("music_volume")
+        val sfxOn = booleanPreferencesKey("sfx_on")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -71,6 +82,10 @@ class SettingsStore(private val context: Context) {
         theme = this[K.theme] ?: "neon",
         calendarBannerHiddenUntil = this[K.bannerHidden] ?: 0,
         staticThemes = this[K.staticThemes] ?: emptySet(),
+        musicOn = this[K.musicOn] ?: true,
+        ambientSong = this[K.ambientSong] ?: "energy",
+        musicVolume = this[K.musicVolume] ?: 45,
+        sfxOn = this[K.sfxOn] ?: true,
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -98,6 +113,10 @@ class SettingsStore(private val context: Context) {
     suspend fun setTheme(id: String) = context.dataStore.edit { it[K.theme] = id }
     suspend fun hideCalendarBanner(untilEpochDay: Long) = context.dataStore.edit { it[K.bannerHidden] = untilEpochDay }
     suspend fun setReducedEffects(v: Boolean) = context.dataStore.edit { it[K.reducedFx] = v }
+    suspend fun setMusicOn(v: Boolean) = context.dataStore.edit { it[K.musicOn] = v }
+    suspend fun setAmbientSong(id: String) = context.dataStore.edit { it[K.ambientSong] = id }
+    suspend fun setMusicVolume(v: Int) = context.dataStore.edit { it[K.musicVolume] = v.coerceIn(0, 100) }
+    suspend fun setSfxOn(v: Boolean) = context.dataStore.edit { it[K.sfxOn] = v }
     suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {
         if (v == null) it.remove(K.localName) else it[K.localName] = v
