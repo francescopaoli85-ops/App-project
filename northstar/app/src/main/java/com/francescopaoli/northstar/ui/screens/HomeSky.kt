@@ -11,16 +11,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.francescopaoli.northstar.data.Area
 import com.francescopaoli.northstar.data.Goal
 import com.francescopaoli.northstar.ui.components.color
 import com.francescopaoli.northstar.ui.fx.rememberClock
-import com.francescopaoli.northstar.ui.theme.Neon
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -65,10 +62,6 @@ fun HomeSky(
     ) {
         val pts = shown.indices.map { Offset(SLOTS[it].x * size.width, SLOTS[it].y * size.height) }
         val polar = Offset(POLAR.x * size.width, POLAR.y * size.height)
-        // linee della costellazione: le stelle tra loro, l'ultima verso la Stella Polare
-        val dash = PathEffect.dashPathEffect(floatArrayOf(6f, 8f))
-        for (i in 1 until pts.size) drawLine(Neon.Lilac.copy(alpha = 0.35f), pts[i - 1], pts[i], 1.2.dp.toPx(), pathEffect = dash)
-        pts.lastOrNull()?.let { drawLine(GOLD.copy(alpha = 0.25f), it, polar, 1.dp.toPx(), pathEffect = dash) }
 
         // la Stella Polare
         val pp = 0.5f + 0.5f * sin(t * 1.3f)
@@ -100,22 +93,6 @@ private fun DrawScope.drawStar(c: Offset, r: Float, color: Color) {
     }
     p.close()
     drawPath(p, color)
-}
-
-/** Piccola costellazione dell'area: la "firma" di ogni card. */
-@Composable
-fun AreaGlyph(area: Area, modifier: Modifier = Modifier) {
-    val pts = when (area) {
-        Area.LAVORO -> listOf(0.1f to 0.8f, 0.4f to 0.2f, 0.7f to 0.6f, 0.95f to 0.15f)
-        Area.SALUTE -> listOf(0.1f to 0.5f, 0.35f to 0.15f, 0.6f to 0.75f, 0.92f to 0.4f)
-        Area.RELAZIONI -> listOf(0.15f to 0.2f, 0.5f to 0.85f, 0.85f to 0.2f, 0.5f to 0.5f)
-        Area.PERSONALE -> listOf(0.1f to 0.3f, 0.4f to 0.7f, 0.65f to 0.25f, 0.9f to 0.8f)
-    }
-    Canvas(modifier) {
-        val o = pts.map { (x, y) -> Offset(x * size.width, y * size.height) }
-        for (i in 1 until o.size) drawLine(area.color.copy(alpha = 0.7f), o[i - 1], o[i], 1.dp.toPx())
-        o.forEach { drawCircle(Color.White.copy(alpha = 0.9f), 1.8.dp.toPx(), it) }
-    }
 }
 
 /** Una frase al giorno, sempre la stessa per tutta la giornata. */

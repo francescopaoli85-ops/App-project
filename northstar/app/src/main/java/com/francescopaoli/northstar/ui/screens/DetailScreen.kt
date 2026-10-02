@@ -135,7 +135,6 @@ fun DetailScreen(
                 Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                AreaGlyph(g.area, Modifier.size(44.dp, 26.dp))
                 Text(
                     "${g.area.label.uppercase()} · " + if (postponed) "NUOVA DATA ${SummaryBuilder.formatDate(g.deadline).uppercase()}"
                     else "SCADE IL ${SummaryBuilder.formatDate(g.deadline).uppercase()}",

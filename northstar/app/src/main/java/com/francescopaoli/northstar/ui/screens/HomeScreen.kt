@@ -189,10 +189,9 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onAdd: (() -> Unit)? = null
     Box(modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Neon.Surface.copy(alpha = 0.75f)).clickable(onClick = onClick)) {
         // striscia del colore dell'area e la sua piccola costellazione: la firma della card
         Box(Modifier.align(Alignment.CenterStart).padding(vertical = 14.dp).size(3.dp, 52.dp).clip(RoundedCornerShape(2.dp)).background(g.area.color))
-        AreaGlyph(g.area, Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 14.dp).size(30.dp, 18.dp))
         Column(Modifier.padding(start = 18.dp, end = 16.dp, top = 14.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(g.title, color = Neon.Text, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2,
-                overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(end = 36.dp).sharedTextOf("title-${g.id}"))
+                overflow = TextOverflow.Ellipsis, modifier = Modifier.sharedTextOf("title-${g.id}"))
             StarTrail(done, g.actions.size, height = 18.dp, muted = postponed)
             Text(line, color = if (g.isDue()) Neon.Cyan else Neon.Text3, fontSize = 12.sp)
         }

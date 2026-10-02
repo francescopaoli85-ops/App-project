@@ -92,7 +92,7 @@ fun NeonBackdrop(
             if (fx.full && Neon.Style == com.francescopaoli.northstar.ui.theme.SkyStyle.NEON) {
                 BlobLayer(blobs.map { it.copy(alpha = it.alpha * 0.55f) })
             }
-            StarField(seed, if (fx.full) 70 else 30)
+            StarField(seed, if (fx.full) 35 else 18)
             ThemeParticles(
                 if (fx.full) particles else particles / 2,
                 Modifier.fillMaxSize().offset {
