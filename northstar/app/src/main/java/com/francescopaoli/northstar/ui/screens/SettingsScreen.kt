@@ -2,6 +2,7 @@ package com.francescopaoli.northstar.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,60 +64,58 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
 
                 // 1 · SUONI: musica ed effetti, ciascuno col suo volume
-                NeonColumnCard(Modifier.fillMaxWidth().enter(0)) {
+                LightSection(Modifier.enter(0)) {
                     Label("Suoni")
                     Toggle("Musica", s.musicOn, vm::setMusicOn)
                     if (s.musicOn) {
-                        SubLabel("Canzone di sottofondo")
-                        Segmented(
+                            Segmented(
                             com.francescopaoli.northstar.audio.AmbientSong.entries.map { it.id to it.label },
                             s.ambientSong, vm::setAmbientSong,
                         )
                         VolumeSlider("Volume musica", s.musicVolume, onLive = { vm.sound.music.setVolume(it / 100f) }, onCommit = vm::setMusicVolume)
                     }
-                    Divider()
                     Toggle("Effetti sonori", s.sfxOn, vm::setSfxOn)
                     if (s.sfxOn) VolumeSlider(
                         "Volume effetti", s.sfxVolume,
                         onLive = { vm.sound.sfx.level = it / 100f },
                         onCommit = { vm.setSfxVolume(it); vm.sound.sfx.tap() }, // anteprima del volume scelto
                     )
-                    Hint("Nelle domande la musica cresce a ogni risposta; si abbassa quando parla la voce guida o quando scrivi, e si ferma appena esci dall'app.")
                 }
 
                 // 2 · ASPETTO: tema e movimento dello sfondo
-                NeonColumnCard(Modifier.fillMaxWidth().enter(1)) {
+                LightSection(Modifier.enter(1)) {
                     Label("Aspetto")
                     ThemePicker(s.theme, vm::setTheme)
-                    val themeName = com.francescopaoli.northstar.ui.theme.Palettes.byId(s.theme).name
                     // stato reale: col risparmio energetico lo sfondo può essere fermo anche se il tema è animato
                     val stoppedBySaver = powerSave && !s.animateOnPowerSave
-                    SubLabel("Movimento")
-                    Toggle("Sfondo animato · $themeName", s.theme !in s.staticThemes && !stoppedBySaver) { on ->
+                    Toggle("Sfondo animato", s.theme !in s.staticThemes && !stoppedBySaver) { on ->
                         vm.setThemeAnimated(s.theme, on)
                         if (on && stoppedBySaver) vm.setAnimateOnPowerSave(true)
                     }
-                    Toggle("Fermalo col risparmio energetico", !s.animateOnPowerSave) { vm.setAnimateOnPowerSave(!it) }
-                    Toggle("Effetto giroscopio (inclina il telefono)", s.parallaxOn, vm::setParallax)
-                    Toggle("Effetti ridotti (risparmia batteria)", s.reducedEffects, vm::setReducedEffects)
-                    Hint(
-                        when {
-                            stoppedBySaver -> "Risparmio energetico attivo: lo sfondo è fermo. Accendi \"Sfondo animato\" per farlo ripartire."
-                            powerSave -> "Risparmio energetico attivo, ma lo sfondo resta animato come hai scelto."
-                            else -> "Sfondo fermo = immagine statica, consuma meno batteria. Vale solo per questo tema."
-                        },
+                    if (stoppedBySaver) Hint("Fermo per il risparmio energetico: accendilo per farlo ripartire.")
+                    // il resto, raccolto: si apre solo se serve
+                    var more by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+                    Text(
+                        if (more) "Meno opzioni  ▴" else "Altre opzioni  ▾", color = Neon.Cyan, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { more = !more }.padding(vertical = 8.dp),
                     )
+                    androidx.compose.animation.AnimatedVisibility(more) {
+                        Column {
+                            Toggle("Fermalo col risparmio energetico", !s.animateOnPowerSave) { vm.setAnimateOnPowerSave(!it) }
+                            Toggle("Effetto giroscopio", s.parallaxOn, vm::setParallax)
+                            Toggle("Effetti ridotti", s.reducedEffects, vm::setReducedEffects)
+                        }
+                    }
                 }
 
                 // 3 · GUIDA E PROMEMORIA
-                NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {
+                LightSection(Modifier.enter(2)) {
                     Label("Guida e promemoria")
-                    Toggle("Voce guida (legge le domande)", s.voiceGuide, vm::setVoice)
+                    Toggle("Voce guida", s.voiceGuide, vm::setVoice)
                     Toggle("Check-in periodici", s.checkins, vm::setCheckins)
-                    Hint("I check-in sono poche domande distanziate per tenere vivi i tuoi obiettivi: rispondi anche con un tocco dalla notifica.")
                 }
 
-                NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {
+                LightSection(Modifier.enter(3)) {
                     Label("Google Calendar")
                     if (s.calendarConnected) {
                         Text("Collegato ✦", color = Neon.Cyan, fontWeight = FontWeight.Bold)
@@ -133,7 +132,7 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                     }
                 }
 
-                NeonColumnCard(Modifier.fillMaxWidth().enter(4)) {
+                LightSection(Modifier.enter(4)) {
                     Label("Pubblicità")
                     if (s.adFree) {
                         Text("Pubblicità rimossa ✦ Grazie per il supporto!", color = Neon.Cyan, fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
@@ -153,7 +152,7 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                 }
 
                 // ACCOUNT in fondo, con l'uscita
-                NeonColumnCard(Modifier.fillMaxWidth().enter(5)) {
+                LightSection(Modifier.enter(5)) {
                     Label("Account")
                     Text(session?.name.orEmpty(), color = Neon.Text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     Text(
@@ -189,6 +188,16 @@ private fun Toggle(label: String, on: Boolean, onChange: (Boolean) -> Unit) {
     }
 }
 
+/** Sezione leggera: titolino e righe, senza card pesanti. */
+@Composable
+private fun LightSection(modifier: Modifier = Modifier, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    Column(
+        modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Neon.Surface.copy(alpha = 0.35f))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        content = content,
+    )
+}
+
 @Composable
 private fun SubLabel(t: String) =
     Text(t, color = Neon.Text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 10.dp, bottom = 8.dp))
@@ -196,11 +205,6 @@ private fun SubLabel(t: String) =
 @Composable
 private fun Hint(t: String) =
     Text(t, color = Neon.Text3, fontSize = 11.sp, lineHeight = 15.sp, modifier = Modifier.padding(top = 6.dp))
-
-@Composable
-private fun Divider() = androidx.compose.foundation.layout.Box(
-    Modifier.fillMaxWidth().padding(vertical = 10.dp).height(1.dp).background(Neon.Track),
-)
 
 /** Cursore di volume: si sente subito mentre lo muovi, si salva quando lo lasci. */
 @Composable
@@ -263,47 +267,28 @@ private fun ModeSwitch(mode: CalendarMode, onPick: (CalendarMode) -> Unit) {
     }
 }
 
-/** Tre anteprime di tema: tocchi e tutta l'app si ricolora subito. */
+/** Temi come una fila leggera di cerchi colorati: tocchi e tutta l'app si ricolora subito. */
 @Composable
 private fun ThemePicker(selected: String, onPick: (String) -> Unit) {
-    // 3 per riga: con 5 temi vengono due righe ordinate
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-    com.francescopaoli.northstar.ui.theme.Palettes.all.chunked(3).forEach { row ->
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        row.forEach { p ->
+    Row(Modifier.fillMaxWidth()) {
+        com.francescopaoli.northstar.ui.theme.Palettes.all.forEach { p ->
             val on = p.id == selected
-            val shape = RoundedCornerShape(14.dp)
             Column(
-                Modifier
-                    .weight(1f)
-                    .clip(shape)
-                    .background(p.night)
-                    .border(if (on) 2.dp else 1.dp, if (on) p.accent2 else p.track, shape)
+                Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
                     .clickable(role = Role.RadioButton, onClickLabel = p.name) { onPick(p.id) }
-                    .padding(10.dp),
+                    .padding(vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // mini cielo del tema: bagliore + gradiente degli accenti
-                androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(54.dp).clip(RoundedCornerShape(10.dp))) {
-                    drawRect(p.surface)
-                    drawCircle(
-                        androidx.compose.ui.graphics.Brush.radialGradient(listOf(p.accent1.copy(alpha = 0.7f), Color.Transparent),
-                            androidx.compose.ui.geometry.Offset(size.width * 0.75f, size.height * 0.2f), size.width * 0.7f),
-                        size.width * 0.7f, androidx.compose.ui.geometry.Offset(size.width * 0.75f, size.height * 0.2f),
-                    )
-                    drawRoundRect(
-                        androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(p.accent1, p.accent2)),
-                        topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.12f, size.height * 0.68f),
-                        size = androidx.compose.ui.geometry.Size(size.width * 0.76f, size.height * 0.16f),
-                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(20f, 20f),
-                    )
-                }
-                Text(p.name, color = if (on) p.text else p.text2, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
+                androidx.compose.foundation.layout.Box(
+                    Modifier.size(40.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(p.accent1, p.accent2)))
+                        .border(if (on) 3.dp else 1.dp, if (on) Color.White else p.track, androidx.compose.foundation.shape.CircleShape),
+                )
+                Text(
+                    p.name.substringBefore(" "), color = if (on) Neon.Text else Neon.Text3, fontSize = 11.sp, maxLines = 1,
+                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.padding(top = 6.dp),
+                )
             }
         }
-        repeat(3 - row.size) { androidx.compose.foundation.layout.Spacer(Modifier.weight(1f)) }
-    }
-    }
     }
 }

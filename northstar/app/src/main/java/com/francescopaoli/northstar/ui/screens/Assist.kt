@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -103,11 +104,19 @@ fun QuickTextDialog(
     onDismiss: () -> Unit,
 ) {
     var text by rememberSaveable { mutableStateOf(initial) }
+    val focus = androidx.compose.runtime.remember { androidx.compose.ui.focus.FocusRequester() }
+    androidx.compose.runtime.LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Neon.Surface,
         title = { Text(title, color = Neon.Text, fontSize = 17.sp, fontWeight = FontWeight.Bold) },
-        text = { NeonTextField(text, { text = it }, placeholder, singleLine = true) },
+        text = {
+            NeonTextField(
+                text, { text = it }, placeholder, singleLine = true,
+                modifier = Modifier.focusRequester(focus),
+                onDone = { if (text.isNotBlank()) onConfirm(text.trim()) },
+            )
+        },
         confirmButton = {
             TextButton({ if (text.isNotBlank()) onConfirm(text.trim()) }, enabled = text.isNotBlank()) {
                 Text(confirm, color = if (text.isNotBlank()) Neon.Cyan else Neon.Text3, fontWeight = FontWeight.Bold)

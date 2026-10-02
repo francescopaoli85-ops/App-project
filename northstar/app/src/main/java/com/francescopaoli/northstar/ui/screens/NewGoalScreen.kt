@@ -223,7 +223,10 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                         else {
                             QuestionHeader(c)
                             PreviousAnswer(ng, step)
-                            if (c == Criterion.CONTESTUALIZZATO) DateCard(ng) { pickDate = true }
+                            if (c == Criterion.CONTESTUALIZZATO) {
+                                DateCard(ng) { pickDate = true }
+                                QuickDates(java.time.LocalDate.now(), onPick = { ng.deadline = it }, onCustom = { pickDate = true })
+                            }
                             if (ng.typing) {
                                 NeonTextField(
                                     ng.answers[c].orEmpty(), ng::setAnswer,

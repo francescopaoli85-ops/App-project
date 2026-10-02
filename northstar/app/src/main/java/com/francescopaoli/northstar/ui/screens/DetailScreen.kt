@@ -91,6 +91,8 @@ fun DetailScreen(
     val showAds by vm.showAds.collectAsStateWithLifecycle()
     val g = goals.firstOrNull { it.id == id } ?: run { NeonBackdrop { }; return }
     var pickDate by remember { mutableStateOf(false) }
+    // posticipa in un tocco: scelte rapide, il calendario solo se serve
+    var quickPostpone by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     var confirmAchieve by remember { mutableStateOf(false) }
     val postponed = g.status == GoalStatus.POSTPONED
@@ -138,7 +140,7 @@ fun DetailScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 // alla scadenza l'app chiede se è stato raggiunto
-                if (g.isDue()) DueBanner(onYes = { vm.achieve(g.id); onAchieved() }, onLater = { pickDate = true })
+                if (g.isDue()) DueBanner(onYes = { vm.achieve(g.id); onAchieved() }, onLater = { quickPostpone = true })
 
                 NeonColumnCard(Modifier.fillMaxWidth().enter(0)) {
                     Icon(NsIcons.Quote, null, tint = Neon.Cyan.copy(alpha = 0.6f), modifier = Modifier.size(26.dp, 20.dp))
@@ -173,13 +175,30 @@ fun DetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     // due azioni della stessa taglia, sobrie: niente tocchi per sbaglio su "raggiunto"
-                    GhostButton("Posticipa", { pickDate = true }, Modifier.weight(1f))
+                    GhostButton("📅  Posticipa", { quickPostpone = true }, Modifier.weight(1f))
                     AchieveButton({ confirmAchieve = true }, Modifier.weight(1f))
                 }
             }
         }
     }
 
+    if (quickPostpone) AlertDialog(
+        onDismissRequest = { quickPostpone = false },
+        containerColor = Neon.Surface,
+        title = { Text("Sposta la scadenza", color = Neon.Text, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Adesso: ${SummaryBuilder.formatDate(g.deadline)}. Va benissimo prendersi più tempo.", color = Neon.Text2, fontSize = 13.sp)
+                QuickDates(
+                    g.deadline,
+                    onPick = { vm.postpone(g.id, it); quickPostpone = false },
+                    onCustom = { quickPostpone = false; pickDate = true },
+                )
+            }
+        },
+        confirmButton = {},
+        dismissButton = { androidx.compose.material3.TextButton({ quickPostpone = false }) { Text("Annulla", color = Neon.Text2) } },
+    )
     if (pickDate) NeonDatePicker(
         initial = maxOf(g.deadline, java.time.LocalDate.now()).plusWeeks(2),
         onPick = { vm.postpone(g.id, it); pickDate = false },
@@ -240,7 +259,10 @@ private fun ActionsCard(g: Goal, vm: MainViewModel, modifier: Modifier) {
                 ActionRow(a, Modifier.enter(i, 60), { vm.toggleAction(g.id, a.id) }, { editing = a }, { vm.removeAction(g.id, a.id) })
             }
             if (g.isOpen) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                NeonTextField(newAction, { newAction = it }, "Nuova azione…", singleLine = true, modifier = Modifier.weight(1f))
+                NeonTextField(
+                    newAction, { newAction = it }, "Nuova azione…", singleLine = true, modifier = Modifier.weight(1f),
+                    onDone = { vm.addAction(g.id, newAction); newAction = "" },
+                )
                 Box(
                     Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Neon.Violet.copy(alpha = 0.25f))
                         .clickable(role = Role.Button, onClickLabel = "Aggiungi azione") { vm.addAction(g.id, newAction); newAction = "" },

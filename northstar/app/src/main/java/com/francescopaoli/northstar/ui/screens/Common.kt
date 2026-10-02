@@ -24,6 +24,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -87,9 +88,14 @@ fun NeonTextField(
     singleLine: Boolean = false,
     minLines: Int = 1,
     password: Boolean = false,
+    /** Se presente, il tasto "Fatto" della tastiera conferma (un tocco in meno). */
+    onDone: (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         value, onChange,
+        keyboardOptions = if (onDone != null) androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done)
+        else androidx.compose.foundation.text.KeyboardOptions.Default,
+        keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { onDone?.invoke() }),
         modifier = modifier.fillMaxWidth(),
         placeholder = { Text(placeholder, color = Neon.Text3) },
         singleLine = singleLine,
@@ -152,4 +158,37 @@ private fun Modifier.glassHeader(): Modifier {
             ),
         )
     } else this.background(Neon.headerBrush)
+}
+
+/**
+ * Scadenze rapide con un tocco: +1 settimana, +1 mese, +3 mesi, oppure "Scegli…" per il calendario.
+ * [from] è la data di partenza (oggi o la scadenza attuale).
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun QuickDates(from: LocalDate, onPick: (LocalDate) -> Unit, onCustom: () -> Unit, modifier: Modifier = Modifier) {
+    val base = maxOf(from, LocalDate.now())
+    androidx.compose.foundation.layout.FlowRow(
+        modifier,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+    ) {
+        listOf("+1 settimana" to base.plusWeeks(1), "+1 mese" to base.plusMonths(1), "+3 mesi" to base.plusMonths(3)).forEach { (label, d) ->
+            QuickChip(label) { onPick(d) }
+        }
+        QuickChip("📅  Scegli…", onCustom)
+    }
+}
+
+@Composable
+private fun QuickChip(label: String, onClick: () -> Unit) {
+    Text(
+        label, color = Neon.Text, fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Neon.Violet.copy(alpha = 0.22f))
+            .border(1.dp, Neon.Violet.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
+            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 9.dp),
+    )
 }
