@@ -41,6 +41,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Widget della schermata Home -->
+        <receiver android:name=".widget.TodayStepWidgetReceiver" android:exported="true"
+            android:label="@string/widget_today_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_today" />
+        </receiver>
+        <receiver android:name=".widget.PolarisWidgetReceiver" android:exported="true"
+            android:label="@string/widget_polaris_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_polaris" />
+        </receiver>
         <!-- "Sì, tutto ok" dalla notifica del check-in -->
         <receiver android:name=".notify.CheckinActionReceiver" android:exported="false" />
     </application>

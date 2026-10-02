@@ -3,6 +3,7 @@ package com.francescopaoli.northstar.ui.screens
 import com.francescopaoli.northstar.ads.AdPlacement
 import com.francescopaoli.northstar.ads.NativeAdCard
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,7 @@ fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val showAds by vm.showAds.collectAsStateWithLifecycle()
     val done = goals.filter { it.status == GoalStatus.ACHIEVED }.sortedByDescending { it.achievedAt ?: 0 }
+    val stats = com.francescopaoli.northstar.domain.Stats.of(goals)
 
     NeonBackdrop(blobs = emptyList(), particles = 6, seed = 12) {
         Column(Modifier.fillMaxSize()) {
@@ -83,6 +85,8 @@ fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
                 contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 40.dp),
                 verticalArrangement = Arrangement.spacedBy(11.dp),
             ) {
+                // i numeri del tuo percorso (anche senza traguardi: i passi contano già)
+                item(key = "stats") { StatsGrid(stats, Modifier.enter(0)) }
                 if (done.isEmpty()) item {
                     NeonCard(Modifier.fillMaxWidth().enter(0), padding = 20.dp) {
                         Text("Quando segnerai un obiettivo come raggiunto, lo troverai qui a brillare.",
@@ -110,6 +114,33 @@ fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
                 }
             }
             BottomNav(Tab.TRAGUARDI, onTab)
+        }
+    }
+}
+
+/** Quattro numeri che raccontano il tuo percorso. */
+@Composable
+private fun StatsGrid(s: com.francescopaoli.northstar.domain.Stats, modifier: Modifier) {
+    val tiles = listOf(
+        Triple("${s.stepsDone}", "passi fatti", "in tutto, su ogni obiettivo"),
+        Triple("${s.achievedThisYear}", "traguardi quest'anno", if (s.achieved > s.achievedThisYear) "${s.achieved} in totale" else "continua così"),
+        Triple(s.avgDays?.let { "$it" } ?: "—", "giorni in media", "dall'idea al traguardo"),
+        Triple(s.topArea?.label ?: "—", "area più forte", if (s.achieved > 0) "${s.onTime} su ${s.achieved} senza rinvii" else "si vedrà presto"),
+    )
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        tiles.chunked(2).forEach { row ->
+            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                row.forEach { (value, label, sub) ->
+                    Column(
+                        Modifier.weight(1f).clip(RoundedCornerShape(16.dp)).background(Neon.Surface.copy(alpha = 0.75f))
+                            .border(1.dp, Neon.Violet.copy(alpha = 0.25f), RoundedCornerShape(16.dp)).padding(14.dp),
+                    ) {
+                        Text(value, color = Neon.Cyan, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+                        Text(label, color = Neon.Text, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 2.dp))
+                        Text(sub, color = Neon.Text3, fontSize = 11.sp, lineHeight = 14.sp, modifier = Modifier.padding(top = 2.dp))
+                    }
+                }
+            }
         }
     }
 }

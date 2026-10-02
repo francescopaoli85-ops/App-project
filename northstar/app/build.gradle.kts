@@ -27,8 +27,8 @@ android {
         applicationId = "com.francescopaoli.northstar"
         minSdk = 28
         targetSdk = 35
-        versionCode = 13
-        versionName = "0.7.0"
+        versionCode = 14
+        versionName = "0.8.0"
         manifestPlaceholders["admobAppId"] = admobAppId
         buildConfigField("String", "ADMOB_NATIVE_ID", "\"$admobNativeId\"")
     }
@@ -95,6 +95,8 @@ dependencies {
     implementation(libs.ump)
     implementation(libs.billing)
     implementation(libs.haze)
+    // widget per la schermata Home di Android
+    implementation(libs.androidx.glance.appwidget)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)

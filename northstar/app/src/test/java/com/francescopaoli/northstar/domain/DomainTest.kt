@@ -128,3 +128,47 @@ class CheckinOneTapTest {
         assertEquals(true, back?.checkinPending)
     }
 }
+
+class FocusAndStatsTest {
+    private val today = LocalDate.of(2026, 10, 2)
+    private fun ms(d: LocalDate) = d.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+    private fun goal(title: String, created: LocalDate, deadline: LocalDate, done: Int, total: Int) =
+        com.francescopaoli.northstar.data.Goal(
+            answers = mapOf(Criterion.POSITIVO to title),
+            createdAt = ms(created), deadlineEpochDay = deadline.toEpochDay(),
+            actions = (1..total).map { com.francescopaoli.northstar.data.GoalAction(text = "a$it", done = it <= done) },
+        )
+
+    @Test fun `il focus va sull'obiettivo più in ritardo e sulla sua prossima azione`() {
+        val inTime = goal("In orario", today.minusDays(10), today.plusDays(10), done = 3, total = 4)
+        val late = goal("In ritardo", today.minusDays(18), today.plusDays(2), done = 1, total = 4)
+        val p = Focus.pick(listOf(inTime, late), today)!!
+        assertEquals("In ritardo", p.goal.title)
+        assertEquals("a2", p.action?.text)
+        assertTrue(p.behind)
+    }
+
+    @Test fun `un obiettivo senza azioni non ruba il focus a uno con un passo pronto`() {
+        val noActions = goal("Vuoto", today.minusDays(20), today.plusDays(1), done = 0, total = 0)
+        val ready = goal("Pronto", today.minusDays(5), today.plusDays(30), done = 0, total = 2)
+        assertEquals("Pronto", Focus.pick(listOf(noActions, ready), today)!!.goal.title)
+    }
+
+    @Test fun `senza obiettivi aperti nessun focus`() {
+        assertEquals(null, Focus.pick(emptyList(), today))
+    }
+
+    @Test fun `statistiche dei traguardi`() {
+        val a = goal("A", today.minusDays(30), today, 2, 2).copy(
+            status = com.francescopaoli.northstar.data.GoalStatus.ACHIEVED, achievedAt = ms(today.minusDays(10)),
+            area = com.francescopaoli.northstar.data.Area.SALUTE,
+        )
+        val b = goal("B", today.minusDays(10), today, 1, 3)
+        val s = Stats.of(listOf(a, b), today)
+        assertEquals(1, s.achieved)
+        assertEquals(20, s.avgDays)
+        assertEquals(com.francescopaoli.northstar.data.Area.SALUTE, s.topArea)
+        assertEquals(3, s.stepsDone)
+        assertEquals(1, s.onTime)
+    }
+}

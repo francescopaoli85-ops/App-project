@@ -3,4 +3,8 @@
     <string name="channel_checkin">Check-in obiettivi</string>
     <string name="channel_checkin_desc">Promemoria leggeri sui tuoi obiettivi e scadenze</string>
     <string name="ad_label">Annuncio</string>
+    <string name="widget_today_name">Passo di oggi</string>
+    <string name="widget_today_desc">La prossima azione dell\'obiettivo più urgente, da spuntare dal widget</string>
+    <string name="widget_polaris_name">Stella Polare</string>
+    <string name="widget_polaris_desc">I tuoi obiettivi con avanzamento e giorni rimasti</string>
 </resources>

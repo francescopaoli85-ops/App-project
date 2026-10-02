@@ -36,6 +36,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -93,6 +95,7 @@ fun HomeScreen(
     // "+" su una card o "Scegli un piccolo passo": nuovo passo senza aprire l'obiettivo
     var quickAddFor by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<String?>(null) }
     val checkinGoal = open.firstOrNull { com.francescopaoli.northstar.domain.Checkins.needsAnswer(it) }
+    val focus = com.francescopaoli.northstar.domain.Focus.pick(goals)
 
     NeonBackdrop(particles = 8, seed = 2) {
         Twinkles()
@@ -121,6 +124,18 @@ fun HomeScreen(
                             Stat(open.size, "attivi", Neon.Lilac, Modifier.pop(300))
                             Stat(achieved, "raggiunti", Neon.Cyan, Modifier.pop(400))
                         }
+                    }
+                }
+                // una sola cosa da fare oggi, in cima: meno scelte, più azione
+                focus?.let { f ->
+                    item(key = "focus") {
+                        FocusCard(
+                            f,
+                            onToggle = { a -> vm.toggleAction(f.goal.id, a) },
+                            onAdd = { quickAddFor = f.goal.id },
+                            onOpen = { onOpen(f.goal.id) },
+                            modifier = Modifier.enter(0, baseDelayMs = 100).animateItem(),
+                        )
                     }
                 }
                 if (goals.isNotEmpty()) item(key = "hint-star") {
@@ -191,6 +206,64 @@ fun HomeScreen(
         )
     }
 }
+
+/**
+ * Focus di oggi: l'azione più importante, spuntabile con un tocco.
+ * Spuntata, compare da sola la successiva; senza azioni invita ad aggiungerne una.
+ */
+@Composable
+private fun FocusCard(
+    f: com.francescopaoli.northstar.domain.Focus.Pick,
+    onToggle: (String) -> Unit,
+    onAdd: () -> Unit,
+    onOpen: () -> Unit,
+    modifier: Modifier,
+) {
+    val sparks = com.francescopaoli.northstar.ui.fx.LocalSparks.current
+    var boxCenter by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    Column(
+        modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(Neon.Violet.copy(alpha = 0.35f), Neon.Cyan.copy(alpha = 0.16f))))
+            .border(1.dp, Neon.Cyan.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+            .padding(18.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("FOCUS DI OGGI", color = Neon.Cyan, style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+            if (f.behind) Text("un po' indietro", color = Neon.Lilac, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Text(
+            f.goal.title, color = Neon.Text2, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 6.dp).clip(RoundedCornerShape(6.dp)).clickable(onClickLabel = "Apri obiettivo", onClick = onOpen),
+        )
+        val a = f.action
+        Row(
+            Modifier.fillMaxWidth().padding(top = 10.dp).clip(RoundedCornerShape(12.dp))
+                .clickable(role = androidx.compose.ui.semantics.Role.Checkbox) {
+                    if (a == null) onAdd() else { sparks?.emit(boxCenter, big = true); onToggle(a.id) }
+                }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                Modifier.size(26.dp)
+                    .onGloballyPositionedCenter { boxCenter = it }
+                    .clip(RoundedCornerShape(8.dp))
+                    .then(if (a == null) Modifier.background(Neon.Violet.copy(alpha = 0.3f)) else Modifier.border(2.dp, Neon.Cyan, RoundedCornerShape(8.dp))),
+                contentAlignment = Alignment.Center,
+            ) { if (a == null) Icon(NsIcons.Plus, null, tint = Neon.Lilac, modifier = Modifier.size(14.dp)) }
+            Text(
+                a?.text ?: "Aggiungi il prossimo passo",
+                color = if (a == null) Neon.Lilac else Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                lineHeight = 22.sp, modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+private fun Modifier.onGloballyPositionedCenter(block: (androidx.compose.ui.geometry.Offset) -> Unit) =
+    this.then(Modifier.onGloballyPositioned { block(it.boundsInRoot().center) })
 
 /** Check-in in Home: si risponde con un tocco, oppure si aggiorna la risposta. */
 @Composable

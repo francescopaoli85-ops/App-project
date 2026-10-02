@@ -17,6 +17,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 /** Oggetti condivisi dell'app (dependency injection "a mano", semplice). */
 class AppContainer(context: Context) {
+    val appContext: Context = context.applicationContext
     val settings = SettingsStore(context)
     val auth = AuthManager(context, settings)
     val calendar = CalendarSync(context)

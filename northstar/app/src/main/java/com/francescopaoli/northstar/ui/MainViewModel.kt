@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -53,6 +55,16 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
     val goals: StateFlow<List<Goal>> = repo
         .flatMapLatest { it?.observeGoals() ?: flowOf(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    init {
+        // i widget della schermata Home seguono gli obiettivi (spunte, nuovi, raggiunti) e il tema
+        viewModelScope.launch {
+            kotlinx.coroutines.flow.combine(goals, c.settings.settings) { g, s -> g to s.theme }
+                .distinctUntilChanged()
+                .drop(1) // il primo valore è quello iniziale vuoto
+                .collect { com.francescopaoli.northstar.widget.Widgets.refresh(c.appContext) }
+        }
+    }
 
     val settings: StateFlow<Settings> = c.settings.settings
         .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
