@@ -87,7 +87,14 @@ class MusicEngine(private val context: Context) {
 
     fun setScene(s: Scene) {
         inFlow = s is Scene.Flow
-        post { if (scene != s) { scene = s; retarget(musical = true) } }
+        post {
+            if (scene != s) {
+                // da sottofondo a percorso (e ritorno) il cambio è rapido: sul battito, non a fine battuta
+                val kindChanged = (scene is Scene.Flow) != (s is Scene.Flow)
+                scene = s
+                retarget(musical = true, quick = kindChanged)
+            }
+        }
     }
 
     fun setSong(s: AmbientSong) = post { if (song != s) { song = s; retarget(musical = true) } }
@@ -211,7 +218,10 @@ class MusicEngine(private val context: Context) {
     // ---------------- mixer (thread audio) ----------------
 
     /** Ricalcola i volumi voluti per la scena attuale. */
-    private fun retarget(musical: Boolean) {
+    /** true finché il percorso aspettava i suoi strumenti: quando arrivano, il cambio è rapido. */
+    private var waitingFlow = false
+
+    private fun retarget(musical: Boolean, quick: Boolean = false) {
         // le due canzoni di sottofondo restano sempre pronte: il cambio è immediato
         load(ambient.getValue(song))
         AmbientSong.entries.forEach { load(ambient.getValue(it)) }
@@ -220,14 +230,20 @@ class MusicEngine(private val context: Context) {
         val current = playingSong ?: song
 
         // il percorso parte solo quando i suoi strumenti sono pronti: intanto resta il sottofondo
+        // gli strumenti del percorso si preparano subito dopo i sottofondi: entrando nelle domande sono già pronti
+        flow.forEach { load(it) }
         val wantFlow = scene is Scene.Flow
         val flowReady = flow.all { it.complete }
-        if (wantFlow && !flowReady) flow.forEach { load(it) }
         val effective = if (wantFlow && !flowReady) Scene.Ambient else scene
+        val fast = quick || (waitingFlow && flowReady && wantFlow)
+        waitingFlow = wantFlow && !flowReady
 
-        val bar = MusicPlan.nextBar(clock)
-        for (t in flow) setTarget(t, MusicPlan.flowTarget(t.enterStep, effective), MusicPlan.FLOW_FADE_S, if (musical) bar else -1)
-        for ((s, t) in ambient) setTarget(t, MusicPlan.ambientTarget(s, current, effective), MusicPlan.SCENE_FADE_S, if (musical) bar else -1)
+        // cambio di scena: sul prossimo battito con dissolvenza breve; strumenti nuovi nel percorso: sulla battuta
+        val at = if (!musical) -1L else if (fast) MusicPlan.nextBeat(clock) else MusicPlan.nextBar(clock)
+        val flowFade = if (fast) MusicPlan.QUICK_FADE_S else MusicPlan.FLOW_FADE_S
+        val sceneFade = if (fast) MusicPlan.QUICK_FADE_S else MusicPlan.SCENE_FADE_S
+        for (t in flow) setTarget(t, MusicPlan.flowTarget(t.enterStep, effective), flowFade, at)
+        for ((s, t) in ambient) setTarget(t, MusicPlan.ambientTarget(s, current, effective), sceneFade, at)
     }
 
     private fun setTarget(t: Track, v: Float, fade: Float, at: Long) {
@@ -279,12 +295,8 @@ class MusicEngine(private val context: Context) {
                 t.gain = g1
                 val data = t.data
                 if (g0 == 0f && g1 == 0f) {
+                    // tracce mute: restano in memoria, così entrare nelle domande è immediato
                     if (t.silentSince < 0) t.silentSince = clock
-                    // dopo 10 s di silenzio si libera la memoria delle tracce che non servono più
-                    // (solo il percorso: i sottofondi restano pronti per cambiare canzone al volo)
-                    if (t.isFlow && data != null && t.complete && scene !is Scene.Flow && clock - t.silentSince > UNLOAD_AFTER) {
-                        t.data = null; t.complete = false; t.ready = 0
-                    }
                     continue
                 }
                 t.silentSince = -1
@@ -388,6 +400,5 @@ class MusicEngine(private val context: Context) {
         const val BLOCK = 480 // 10 ms
         /** Volume massimo della musica: tenuto basso, è un sottofondo. */
         const val MASTER = 0.55f
-        const val UNLOAD_AFTER = 10L * MusicPlan.SAMPLE_RATE
     }
 }

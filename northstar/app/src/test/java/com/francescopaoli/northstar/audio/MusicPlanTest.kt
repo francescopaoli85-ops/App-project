@@ -40,4 +40,11 @@ class MusicPlanTest {
         assertEquals(AmbientSong.ENERGY, AmbientSong.byId("boh"))
         assertEquals(AmbientSong.CALM, AmbientSong.byId("calm"))
     }
+
+    @Test fun `il cambio rapido cade sul battito, prima della battuta`() {
+        val c = 12_345L
+        assertTrue(MusicPlan.nextBeat(c) > c)
+        assertTrue(MusicPlan.nextBeat(c) <= MusicPlan.nextBar(c))
+        assertTrue(MusicPlan.nextBeat(c) - c <= (MusicPlan.BAR_FRAMES / 4).toLong() + 1)
+    }
 }

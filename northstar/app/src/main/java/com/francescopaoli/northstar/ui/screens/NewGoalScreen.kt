@@ -123,12 +123,9 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
     DisposableEffect(Unit) {
         onDispose { ng.voice.silence(); vm.sound.music.setVoice(false, false); vm.sound.music.setTyping(false) }
     }
-    // musica: in preparazione resta il sottofondo; poi ogni passo aggiunge strumenti fino all'apoteosi (7)
+    // musica: appena entri parte la canzone delle domande; ogni passo aggiunge strumenti fino all'apoteosi (7)
     LaunchedEffect(ng.step, ng.preparing) {
-        vm.sound.music.setScene(
-            if (ng.preparing) com.francescopaoli.northstar.audio.Scene.Ambient
-            else com.francescopaoli.northstar.audio.Scene.Flow(ng.step + 1),
-        )
+        vm.sound.music.setScene(com.francescopaoli.northstar.audio.Scene.Flow(if (ng.preparing) 1 else ng.step + 1))
     }
     // mentre scrivi la musica si abbassa: concentrazione
     LaunchedEffect(ng.typing, ng.preparing) { vm.sound.music.setTyping(ng.typing && !ng.preparing) }

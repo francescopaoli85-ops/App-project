@@ -46,6 +46,8 @@ object MusicPlan {
     /** Dissolvenze (secondi): ingresso strumenti nel percorso e cambio di scena. */
     const val FLOW_FADE_S = 3.5f
     const val SCENE_FADE_S = 2.5f
+    /** Cambio di scena rapido (entrare/uscire dalle domande). */
+    const val QUICK_FADE_S = 1.2f
     /** Volume della musica mentre la voce guida parla o ascolta. */
     const val VOICE_DUCK = 0.10f
     /** Volume della musica mentre il microfono ascolta: si sente, ma non disturba il riconoscimento. */
@@ -65,6 +67,9 @@ object MusicPlan {
 
     /** Primo inizio di battuta dopo [clock] (in frame): lì entrano gli strumenti nuovi, a tempo. */
     fun nextBar(clock: Long): Long = (floor(clock / BAR_FRAMES + 1.0) * BAR_FRAMES).toLong()
+
+    /** Prossimo battito (un quarto di battuta): per i cambi che devono essere quasi immediati. */
+    fun nextBeat(clock: Long): Long = (floor(clock / (BAR_FRAMES / 4) + 1.0) * (BAR_FRAMES / 4)).toLong()
 
     /**
      * Passo di una dissolvenza esponenziale: dopo [frames] il volume [from] si avvicina a [to].

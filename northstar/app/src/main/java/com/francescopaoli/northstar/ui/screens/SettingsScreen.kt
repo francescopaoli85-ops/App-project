@@ -63,106 +63,108 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                 Text("Impostazioni", color = Color.White, style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
 
-                // 1 · SUONI: musica ed effetti, ciascuno col suo volume
+                // l'essenziale: quattro interruttori e i temi
                 LightSection(Modifier.enter(0)) {
-                    Label("Suoni")
                     Toggle("Musica", s.musicOn, vm::setMusicOn)
-                    if (s.musicOn) {
-                            Segmented(
-                            com.francescopaoli.northstar.audio.AmbientSong.entries.map { it.id to it.label },
-                            s.ambientSong, vm::setAmbientSong,
-                        )
-                        VolumeSlider("Volume musica", s.musicVolume, onLive = { vm.sound.music.setVolume(it / 100f) }, onCommit = vm::setMusicVolume)
-                    }
                     Toggle("Effetti sonori", s.sfxOn, vm::setSfxOn)
-                    if (s.sfxOn) VolumeSlider(
-                        "Volume effetti", s.sfxVolume,
-                        onLive = { vm.sound.sfx.level = it / 100f },
-                        onCommit = { vm.setSfxVolume(it); vm.sound.sfx.tap() }, // anteprima del volume scelto
-                    )
+                    Toggle("Voce guida", s.voiceGuide, vm::setVoice)
+                    Toggle("Promemoria", s.checkins, vm::setCheckins)
+                    SubLabel("Tema")
+                    ThemePicker(s.theme, vm::setTheme)
                 }
 
-                // 2 · ASPETTO: tema e movimento dello sfondo
-                LightSection(Modifier.enter(1)) {
-                    Label("Aspetto")
-                    ThemePicker(s.theme, vm::setTheme)
-                    // stato reale: col risparmio energetico lo sfondo può essere fermo anche se il tema è animato
-                    val stoppedBySaver = powerSave && !s.animateOnPowerSave
-                    Toggle("Sfondo animato", s.theme !in s.staticThemes && !stoppedBySaver) { on ->
-                        vm.setThemeAnimated(s.theme, on)
-                        if (on && stoppedBySaver) vm.setAnimateOnPowerSave(true)
+                // tutto il resto, chiuso finché non serve
+                var more by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Neon.Surface.copy(alpha = 0.35f))
+                        .clickable { more = !more }.padding(horizontal = 16.dp, vertical = 14.dp).enter(1),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Altro", color = Neon.Text, fontSize = 15.sp)
+                        Text("canzone, volumi, sfondo, calendario, account…", color = Neon.Text3, fontSize = 12.sp)
                     }
-                    if (stoppedBySaver) Hint("Fermo per il risparmio energetico: accendilo per farlo ripartire.")
-                    // il resto, raccolto: si apre solo se serve
-                    var more by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-                    Text(
-                        if (more) "Meno opzioni  ▴" else "Altre opzioni  ▾", color = Neon.Cyan, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { more = !more }.padding(vertical = 8.dp),
-                    )
-                    androidx.compose.animation.AnimatedVisibility(more) {
-                        Column {
-                            Toggle("Fermalo col risparmio energetico", !s.animateOnPowerSave) { vm.setAnimateOnPowerSave(!it) }
-                            Toggle("Effetto giroscopio", s.parallaxOn, vm::setParallax)
-                            Toggle("Effetti ridotti", s.reducedEffects, vm::setReducedEffects)
+                    Text(if (more) "▴" else "›", color = Neon.Text2, fontSize = 18.sp)
+                }
+                androidx.compose.animation.AnimatedVisibility(more) {
+                  Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    LightSection {
+                        Label("Suoni")
+                        if (s.musicOn) {
+                            SubLabel("Canzone di sottofondo")
+                            Segmented(
+                                com.francescopaoli.northstar.audio.AmbientSong.entries.map { it.id to it.label },
+                                s.ambientSong, vm::setAmbientSong,
+                            )
+                            VolumeSlider("Volume musica", s.musicVolume, onLive = { vm.sound.music.setVolume(it / 100f) }, onCommit = vm::setMusicVolume)
+                        }
+                        if (s.sfxOn) VolumeSlider(
+                            "Volume effetti", s.sfxVolume,
+                            onLive = { vm.sound.sfx.level = it / 100f },
+                            onCommit = { vm.setSfxVolume(it); vm.sound.sfx.tap() },
+                        )
+                    }
+                    LightSection {
+                        Label("Sfondo")
+                        val stoppedBySaver = powerSave && !s.animateOnPowerSave
+                        Toggle("Sfondo animato", s.theme !in s.staticThemes && !stoppedBySaver) { on ->
+                            vm.setThemeAnimated(s.theme, on)
+                            if (on && stoppedBySaver) vm.setAnimateOnPowerSave(true)
+                        }
+                        Toggle("Fermalo col risparmio energetico", !s.animateOnPowerSave) { vm.setAnimateOnPowerSave(!it) }
+                        Toggle("Effetto giroscopio", s.parallaxOn, vm::setParallax)
+                        Toggle("Effetti ridotti", s.reducedEffects, vm::setReducedEffects)
+                    }
+                    LightSection(Modifier.enter(3)) {
+                        Label("Google Calendar")
+                        if (s.calendarConnected) {
+                            Text("Collegato ✦", color = Neon.Cyan, fontWeight = FontWeight.Bold)
+                            Text("Creazione eventi", color = Neon.Text, fontSize = 13.sp, modifier = Modifier.padding(top = 14.dp, bottom = 8.dp))
+                            ModeSwitch(s.calendarMode ?: CalendarMode.AUTO, vm::setCalendarMode)
+                            if (!s.calendarModeManual) Text(
+                                "Scelta in base alle tue risposte. Puoi cambiarla quando vuoi.",
+                                color = Neon.Text3, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp),
+                            )
+                            TextLink("Scollega", vm::disconnectCalendar, color = Neon.Text3)
+                        } else {
+                            Text("Non collegato", color = Neon.Text2, fontSize = 13.sp, modifier = Modifier.padding(bottom = 10.dp))
+                            GhostButton("Collega Google Calendar", onConnectCalendar, Modifier.fillMaxWidth())
                         }
                     }
-                }
 
-                // 3 · GUIDA E PROMEMORIA
-                LightSection(Modifier.enter(2)) {
-                    Label("Guida e promemoria")
-                    Toggle("Voce guida", s.voiceGuide, vm::setVoice)
-                    Toggle("Check-in periodici", s.checkins, vm::setCheckins)
-                }
-
-                LightSection(Modifier.enter(3)) {
-                    Label("Google Calendar")
-                    if (s.calendarConnected) {
-                        Text("Collegato ✦", color = Neon.Cyan, fontWeight = FontWeight.Bold)
-                        Text("Creazione eventi", color = Neon.Text, fontSize = 13.sp, modifier = Modifier.padding(top = 14.dp, bottom = 8.dp))
-                        ModeSwitch(s.calendarMode ?: CalendarMode.AUTO, vm::setCalendarMode)
-                        if (!s.calendarModeManual) Text(
-                            "Scelta in base alle tue risposte. Puoi cambiarla quando vuoi.",
-                            color = Neon.Text3, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp),
-                        )
-                        TextLink("Scollega", vm::disconnectCalendar, color = Neon.Text3)
-                    } else {
-                        Text("Non collegato", color = Neon.Text2, fontSize = 13.sp, modifier = Modifier.padding(bottom = 10.dp))
-                        GhostButton("Collega Google Calendar", onConnectCalendar, Modifier.fillMaxWidth())
+                    LightSection(Modifier.enter(4)) {
+                        Label("Pubblicità")
+                        if (s.adFree) {
+                            Text("Pubblicità rimossa ✦ Grazie per il supporto!", color = Neon.Cyan, fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
+                        } else {
+                            Text(
+                                "Qualche card sponsorizzata tiene l'app gratuita. Puoi toglierle per sempre con un solo acquisto.",
+                                color = Neon.Text2, fontSize = 12.5.sp, lineHeight = 19.sp, modifier = Modifier.padding(bottom = 12.dp),
+                            )
+                            com.francescopaoli.northstar.ui.components.GradientButton(
+                                price?.let { "Rimuovi pubblicità · $it" } ?: "Rimuovi pubblicità",
+                                { vm.buyRemoveAds(activity) }, Modifier.fillMaxWidth(), glowing = false,
+                            )
+                            TextLink("Ripristina acquisto", vm::restorePurchases, Modifier.fillMaxWidth(), color = Neon.Text3)
+                        }
+                        if (vm.privacyOptionsRequired) TextLink("Preferenze privacy annunci", { vm.showPrivacyOptions(activity) },
+                            Modifier.fillMaxWidth(), color = Neon.Text3)
                     }
-                }
 
-                LightSection(Modifier.enter(4)) {
-                    Label("Pubblicità")
-                    if (s.adFree) {
-                        Text("Pubblicità rimossa ✦ Grazie per il supporto!", color = Neon.Cyan, fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
-                    } else {
+                    // ACCOUNT in fondo, con l'uscita
+                    LightSection(Modifier.enter(5)) {
+                        Label("Account")
+                        Text(session?.name.orEmpty(), color = Neon.Text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Text(
-                            "Qualche card sponsorizzata tiene l'app gratuita. Puoi toglierle per sempre con un solo acquisto.",
-                            color = Neon.Text2, fontSize = 12.5.sp, lineHeight = 19.sp, modifier = Modifier.padding(bottom = 12.dp),
+                            when (session) {
+                                is Session.Cloud -> session.email ?: "Account Google"
+                                else -> "Modalità locale · dati solo su questo telefono"
+                            },
+                            color = Neon.Text2, fontSize = 12.sp,
                         )
-                        com.francescopaoli.northstar.ui.components.GradientButton(
-                            price?.let { "Rimuovi pubblicità · $it" } ?: "Rimuovi pubblicità",
-                            { vm.buyRemoveAds(activity) }, Modifier.fillMaxWidth(), glowing = false,
-                        )
-                        TextLink("Ripristina acquisto", vm::restorePurchases, Modifier.fillMaxWidth(), color = Neon.Text3)
+                        GhostButton("Esci", vm::signOut, Modifier.fillMaxWidth().padding(top = 12.dp))
                     }
-                    if (vm.privacyOptionsRequired) TextLink("Preferenze privacy annunci", { vm.showPrivacyOptions(activity) },
-                        Modifier.fillMaxWidth(), color = Neon.Text3)
-                }
-
-                // ACCOUNT in fondo, con l'uscita
-                LightSection(Modifier.enter(5)) {
-                    Label("Account")
-                    Text(session?.name.orEmpty(), color = Neon.Text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text(
-                        when (session) {
-                            is Session.Cloud -> session.email ?: "Account Google"
-                            else -> "Modalità locale · dati solo su questo telefono"
-                        },
-                        color = Neon.Text2, fontSize = 12.sp,
-                    )
-                    GhostButton("Esci", vm::signOut, Modifier.fillMaxWidth().padding(top = 12.dp))
+                  }
                 }
             }
             BottomNav(Tab.IMPOSTAZIONI, onTab)

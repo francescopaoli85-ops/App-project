@@ -41,6 +41,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
@@ -97,90 +100,98 @@ fun DetailScreen(
     var confirmAchieve by remember { mutableStateOf(false) }
     val postponed = g.status == GoalStatus.POSTPONED
 
+    var menu by remember { mutableStateOf(false) }
+    var showAnswers by remember { mutableStateOf(false) }
+    var adding by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<GoalAction?>(null) }
+
+    // Dettaglio essenziale: titolo, frase, sentiero, azioni. Il resto è nel menu ⋯
     NeonBackdrop(particles = 6, seed = 4) {
         Column(Modifier.fillMaxSize().imePadding()) {
-            HeaderBand(blob = Blob(1f, 1f, 0.5f, Neon.Cyan, 0.25f)) {
-                TopRow(
-                    start = { RoundIconButton(NsIcons.Back, "Indietro", onBack) },
-                    end = {
-                        val synced = settings.calendarConnected && g.calendarEventId != null
-                        Row(
-                            Modifier.clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha = 0.08f))
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Icon(NsIcons.Calendar, null, tint = if (synced) Neon.Cyan else Neon.Text3, modifier = Modifier.size(12.dp))
-                            Text(if (synced) "Sincronizzato" else "Solo in app", color = if (synced) Neon.Cyan else Neon.Text3,
-                                fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
+            Row(
+                Modifier.fillMaxWidth().statusBarsPadding().padding(start = 18.dp, end = 10.dp, top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RoundIconButton(NsIcons.Back, "Indietro", onBack)
+                Spacer(Modifier.weight(1f))
+                Box {
+                    Text(
+                        "⋯", color = Neon.Text, fontSize = 26.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clip(CircleShape).clickable(onClickLabel = "Altre azioni") { menu = true }.padding(horizontal = 14.dp, vertical = 2.dp),
+                    )
+                    androidx.compose.material3.DropdownMenu(menu, { menu = false }, containerColor = Neon.SurfaceHi) {
+                        if (g.isOpen) {
+                            MenuItem("📅  Posticipa") { menu = false; quickPostpone = true }
+                            MenuItem("✓  Raggiunto") { menu = false; confirmAchieve = true }
                         }
-                    },
-                )
-                Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Box(
-                        Modifier.size(58.dp).clip(RoundedCornerShape(18.dp)).background(g.area.color.copy(alpha = 0.18f))
-                            .border(1.dp, g.area.color.copy(alpha = 0.45f), RoundedCornerShape(18.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) { Icon(g.area.icon, null, tint = g.area.color, modifier = Modifier.size(28.dp)) }
-                    Column {
-                        Text(g.area.label.uppercase(), color = g.area.color, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, modifier = Modifier.pop(150))
-                        Text(g.title, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 23.sp,
-                            modifier = Modifier.padding(top = 6.dp).sharedTextOf("title-${g.id}"))
-                        Text(
-                            if (postponed) "Nuova data: ${SummaryBuilder.formatDate(g.deadline)} · ci si riprova, con calma"
-                            else "Scadenza: ${SummaryBuilder.formatDate(g.deadline)}",
-                            color = Neon.Text2, fontSize = 11.5.sp, modifier = Modifier.padding(top = 4.dp).enter(1),
-                        )
+                        MenuItem("💬  Le tue 6 risposte") { menu = false; showAnswers = true }
+                        if (g.isOpen) MenuItem("🔔  Check-in adesso") { menu = false; onCheckin() }
+                        MenuItem("Elimina", Color(0xFFFF8FA3)) { menu = false; confirmDelete = true }
                     }
                 }
             }
 
             Column(
-                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(22.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
+                Text(
+                    "${g.area.label.uppercase()} · " + if (postponed) "NUOVA DATA ${SummaryBuilder.formatDate(g.deadline).uppercase()}"
+                    else "SCADE IL ${SummaryBuilder.formatDate(g.deadline).uppercase()}",
+                    color = g.area.color, style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                )
+                Text(g.title, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 29.sp,
+                    modifier = Modifier.sharedTextOf("title-${g.id}"))
+                if (g.summary.isNotBlank()) Text("“${g.summary}”", color = Neon.Text2, fontSize = 14.sp, lineHeight = 21.sp, fontStyle = FontStyle.Italic)
+
                 // alla scadenza l'app chiede se è stato raggiunto
                 if (g.isDue()) DueBanner(onYes = { vm.achieve(g.id); onAchieved() }, onLater = { quickPostpone = true })
 
-                NeonColumnCard(Modifier.fillMaxWidth().enter(0)) {
-                    Icon(NsIcons.Quote, null, tint = Neon.Cyan.copy(alpha = 0.6f), modifier = Modifier.size(26.dp, 20.dp))
-                    Text(g.summary, color = Neon.TextSoft, fontSize = 13.5.sp, lineHeight = 21.sp, fontStyle = FontStyle.Italic,
-                        modifier = Modifier.padding(top = 8.dp))
-                }
-
-                ActionsCard(g, vm, Modifier.enter(1))
-
-                if (g.isOpen && !g.isDue()) {
-                    val crit = Checkins.nextCriterion(g)
-                    NeonCard(Modifier.fillMaxWidth().enter(2), corner = 14.dp, padding = 13.dp, onClick = onCheckin) {
-                        Icon(NsIcons.Bell, null, tint = Neon.Cyan, modifier = Modifier.size(15.dp).bellSwing())
-                        Text("Prossimo check-in: \"${crit.label.lowercase()}?\"", color = Neon.TextMid, fontSize = 12.sp,
-                            modifier = Modifier.weight(1f))
-                        Icon(NsIcons.Chevron, null, tint = Neon.Text3, modifier = Modifier.size(12.dp).nudgeX())
+                StarTrail(g.actions.count { it.done }, g.actions.size, Modifier.padding(vertical = 6.dp), height = 26.dp)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    g.actions.forEachIndexed { i, a ->
+                        ActionRow(a, Modifier.enter(i, 50), { vm.toggleAction(g.id, a.id) }, { editing = a }, { vm.removeAction(g.id, a.id) })
                     }
+                    if (g.isOpen) Text(
+                        "+  Aggiungi azione", color = Neon.Lilac, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { adding = true }.padding(vertical = 10.dp),
+                    )
                 }
-
-                AnswersCard(g, Modifier.enter(3))
-                if (showAds) NativeAdCard(Modifier.fillMaxWidth().enter(4, baseDelayMs = 300))
-                TextLink("Elimina obiettivo", { confirmDelete = true }, Modifier.align(Alignment.CenterHorizontally), color = Neon.Text3)
             }
-
             if (g.actions.isNotEmpty()) CoachBubble(
                 "detail_longpress", "Tieni premuta un'azione per modificarla o eliminarla.",
-                settings.seenHints, { vm.hintSeen(it) }, Modifier.padding(horizontal = 16.dp),
+                settings.seenHints, { vm.hintSeen(it) }, Modifier.navigationBarsPadding().padding(16.dp),
             )
-            if (g.isOpen) {
-                Row(
-                    Modifier.navigationBarsPadding().padding(start = 22.dp, end = 22.dp, bottom = 16.dp, top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    // due azioni della stessa taglia, sobrie: niente tocchi per sbaglio su "raggiunto"
-                    GhostButton("📅  Posticipa", { quickPostpone = true }, Modifier.weight(1f))
-                    AchieveButton({ confirmAchieve = true }, Modifier.weight(1f))
-                }
-            }
         }
     }
+
+    if (adding) QuickTextDialog(
+        title = "Nuova azione", placeholder = "Es. 20 minuti di corsa domani", confirm = "Aggiungi",
+        onConfirm = { vm.addAction(g.id, it); adding = false }, onDismiss = { adding = false },
+    )
+    editing?.let { a ->
+        QuickTextDialog(
+            title = "Modifica azione", initial = a.text, placeholder = "Azione", confirm = "Salva",
+            onConfirm = { vm.editAction(g.id, a.id, it); editing = null }, onDismiss = { editing = null },
+        )
+    }
+    if (showAnswers) AlertDialog(
+        onDismissRequest = { showAnswers = false },
+        containerColor = Neon.Surface,
+        title = { Text("Le tue 6 risposte", color = Neon.Text, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Criterion.entries.forEach { c ->
+                    Text(c.label.uppercase(), color = Neon.Lilac, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    val text = if (c == Criterion.CONTESTUALIZZATO)
+                        listOf(SummaryBuilder.formatDate(g.deadline), g.answers[c].orEmpty()).filter { it.isNotBlank() }.joinToString(" · ")
+                    else g.answers[c].orEmpty().ifBlank { "—" }
+                    Text(text, color = Neon.TextMid, fontSize = 13.sp, lineHeight = 19.sp)
+                }
+            }
+        },
+        confirmButton = { TextButton({ showAnswers = false }) { Text("Chiudi", color = Neon.Cyan) } },
+    )
 
     if (quickPostpone) AlertDialog(
         onDismissRequest = { quickPostpone = false },
@@ -237,48 +248,6 @@ private fun DueBanner(onYes: () -> Unit, onLater: () -> Unit) {
     }
 }
 
-/** Azioni concrete verso la scadenza: da qui nasce la percentuale. */
-@Composable
-private fun ActionsCard(g: Goal, vm: MainViewModel, modifier: Modifier) {
-    var newAction by rememberSaveable { mutableStateOf("") }
-    var editing by remember { mutableStateOf<GoalAction?>(null) }
-    NeonColumnCard(modifier.fillMaxWidth(), corner = 16.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text("Il tuo sentiero", color = Neon.Text, fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
-                Text(
-                    if (g.actions.isEmpty()) "Aggiungi le azioni che ti portano alla meta"
-                    else "${g.actions.count { it.done }} azioni fatte su ${g.actions.size}: ogni azione è una tappa verso la stella",
-                    color = Neon.Text2, fontSize = 11.5.sp,
-                )
-                StarTrail(g.actions.count { it.done }, g.actions.size, Modifier.padding(top = 10.dp), height = 24.dp)
-            }
-        }
-        Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            g.actions.forEachIndexed { i, a ->
-                ActionRow(a, Modifier.enter(i, 60), { vm.toggleAction(g.id, a.id) }, { editing = a }, { vm.removeAction(g.id, a.id) })
-            }
-            if (g.isOpen) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                NeonTextField(
-                    newAction, { newAction = it }, "Nuova azione…", singleLine = true, modifier = Modifier.weight(1f),
-                    onDone = { vm.addAction(g.id, newAction); newAction = "" },
-                )
-                Box(
-                    Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Neon.Violet.copy(alpha = 0.25f))
-                        .clickable(role = Role.Button, onClickLabel = "Aggiungi azione") { vm.addAction(g.id, newAction); newAction = "" },
-                    contentAlignment = Alignment.Center,
-                ) { Icon(NsIcons.Plus, "Aggiungi", tint = Neon.Cyan, modifier = Modifier.size(18.dp)) }
-            }
-        }
-    }
-    editing?.let { a ->
-        QuickTextDialog(
-            title = "Modifica azione", initial = a.text, placeholder = "Azione", confirm = "Salva",
-            onConfirm = { vm.editAction(g.id, a.id, it); editing = null },
-            onDismiss = { editing = null },
-        )
-    }
-}
 
 @Composable
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
@@ -323,44 +292,8 @@ private fun ActionRow(a: GoalAction, modifier: Modifier, onToggle: () -> Unit, o
     }
 }
 
-/** Le 6 risposte originali, apribili a scomparsa. */
-@Composable
-private fun AnswersCard(g: Goal, modifier: Modifier) {
-    var open by rememberSaveable { mutableStateOf(false) }
-    NeonColumnCard(modifier.fillMaxWidth().clickable { open = !open }, corner = 16.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Le tue 6 risposte", color = Neon.Text, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Text(if (open) "Chiudi" else "Apri", color = Neon.Cyan, fontSize = 12.sp)
-        }
-        AnimatedVisibility(open, enter = fadeIn() + expandVertically(), exit = shrinkVertically()) {
-            Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Criterion.entries.forEach { c ->
-                    Column {
-                        Text(c.label.uppercase(), color = Neon.Lilac, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        val text = if (c == Criterion.CONTESTUALIZZATO)
-                            listOf(SummaryBuilder.formatDate(g.deadline), g.answers[c].orEmpty()).filter { it.isNotBlank() }.joinToString(" · ")
-                        else g.answers[c].orEmpty().ifBlank { "—" }
-                        Text(text, color = Neon.TextMid, fontSize = 13.sp, lineHeight = 19.sp)
-                    }
-                }
-            }
-        }
-    }
-}
 
-/** "Raggiunto" in versione sobria: bordo ciano sottile, testo piccolo. */
+
 @Composable
-private fun AchieveButton(onClick: () -> Unit, modifier: Modifier) {
-    Row(
-        modifier
-            .clip(RoundedCornerShape(14.dp))
-            .border(1.5.dp, Neon.Cyan.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(NsIcons.Check, null, tint = Neon.Cyan, modifier = Modifier.size(15.dp))
-        Text("  Raggiunto", color = Neon.Cyan, fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
-    }
-}
+private fun MenuItem(text: String, color: Color = Neon.Text, onClick: () -> Unit) =
+    androidx.compose.material3.DropdownMenuItem(text = { Text(text, color = color, fontSize = 15.sp) }, onClick = onClick)
