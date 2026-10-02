@@ -113,22 +113,19 @@ fun HomeScreen(
                 contentPadding = PaddingValues(start = 22.dp, end = 22.dp, bottom = 110.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // il tuo cielo: ogni obiettivo è una stella, in basso la Stella Polare
                 item {
-                    Row(
-                        Modifier.statusBarsPadding().padding(top = 22.dp, bottom = 10.dp).fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Ciao $name", color = Neon.Text2, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                            Text("I tuoi obiettivi", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-                        }
-                        Box(contentAlignment = Alignment.Center) {
-                            com.francescopaoli.northstar.ui.fx.StarRays(Modifier.size(72.dp))
-                            GradientIconTile(
-                                NsIcons.Star, 44.dp, 14.dp, 20.dp,
-                                Modifier.clip(RoundedCornerShape(14.dp)).clickable(onClickLabel = "La tua Stella Polare", onClick = onPolaris),
-                            )
-                        }
+                    Column(Modifier.statusBarsPadding().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Ciao $name", color = Neon.Text2, fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.fillMaxWidth())
+                        HomeSky(open, onGoal = onOpen, onPolaris = onPolaris, modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            when (open.size) { 0 -> "Il tuo cielo ti aspetta"; 1 -> "1 stella da raggiungere"; else -> "${open.size} stelle da raggiungere" },
+                            color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold,
+                        )
+                        Text(
+                            "“${phraseOfTheDay()}”", color = Neon.Text2, fontSize = 13.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
+                        )
                     }
                 }
                 if (open.isEmpty()) item { EmptyState(Modifier.enter(1)) }
@@ -189,18 +186,16 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onAdd: (() -> Unit)? = null
         append(" · ")
         append(when { g.isDue() -> "è arrivato il giorno ✦"; days == 1L -> "1 giorno"; else -> "$days giorni" })
     }
-    Column(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Neon.Surface.copy(alpha = 0.75f))
-            .clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-            Box(Modifier.size(8.dp).clip(CircleShape).background(g.area.color))
+    Box(modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Neon.Surface.copy(alpha = 0.75f)).clickable(onClick = onClick)) {
+        // striscia del colore dell'area e la sua piccola costellazione: la firma della card
+        Box(Modifier.align(Alignment.CenterStart).padding(vertical = 14.dp).size(3.dp, 52.dp).clip(RoundedCornerShape(2.dp)).background(g.area.color))
+        AreaGlyph(g.area, Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 14.dp).size(30.dp, 18.dp))
+        Column(Modifier.padding(start = 18.dp, end = 16.dp, top = 14.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(g.title, color = Neon.Text, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2,
-                overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).sharedTextOf("title-${g.id}"))
+                overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(end = 36.dp).sharedTextOf("title-${g.id}"))
+            StarTrail(done, g.actions.size, height = 18.dp, muted = postponed)
+            Text(line, color = if (g.isDue()) Neon.Cyan else Neon.Text3, fontSize = 12.sp)
         }
-        StarTrail(done, g.actions.size, height = 18.dp, muted = postponed)
-        Text(line, color = if (g.isDue()) Neon.Cyan else Neon.Text3, fontSize = 12.sp)
     }
 }
 
