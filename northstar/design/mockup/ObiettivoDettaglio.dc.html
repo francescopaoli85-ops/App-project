@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Northstar — Dettaglio obiettivo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; background: #0F0920; color: #F1EEFC; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .rise1 { animation: fadeUp 0.5s ease both; }
+  .rise2 { animation: fadeUp 0.5s ease 0.1s both; }
+  .rise3 { animation: fadeUp 0.5s ease 0.2s both; }
+  @keyframes drawRing { from { stroke-dashoffset: 201; } to { stroke-dashoffset: 60; } }
+  .progressRing { animation: drawRing 1.1s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes glowPulse { 0%,100% { box-shadow: 0 0 18px rgba(124,58,237,0.5); transform: scale(1); } 50% { box-shadow: 0 0 40px rgba(34,211,238,0.65); transform: scale(1.025); } }
+  .ctaGlow { animation: glowPulse 1.6s ease-in-out infinite; }
+  @keyframes bellRing { 0%, 100% { transform: rotate(0deg); } 5% { transform: rotate(14deg); } 10% { transform: rotate(-12deg); } 15% { transform: rotate(8deg); } 20% { transform: rotate(-6deg); } 25%, 100% { transform: rotate(0deg); } }
+  .bell { display: inline-flex; animation: bellRing 2s ease-in-out infinite; transform-origin: top center; }
+  @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .gradMove { background-size: 220% 220%; animation: gradientShift 2.2s ease-in-out infinite; }
+  @keyframes driftPart { 0%,100% { transform: translateY(0) translateX(0); opacity: 0.25; } 50% { transform: translateY(-14px) translateX(5px); opacity: 0.9; } }
+  .particle { position: absolute; border-radius: 50%; animation: driftPart ease-in-out infinite; }
+  @keyframes chevronNudge { 0%,100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+  .chev { animation: chevronNudge 1.6s ease-in-out infinite; }
+  @keyframes badgePop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+  .catBadge { animation: badgePop 0.5s cubic-bezier(.2,.8,.2,1) both; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0F0920; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <!-- Header -->
+  <div style="position: relative; padding: 20px 20px 28px 20px; background: linear-gradient(135deg, #1B1236, #241849); overflow: hidden; border-bottom: 1px solid rgba(124,58,237,0.25);">
+    <div style="position: absolute; bottom: -60px; right: -50px; width: 180px; height: 180px; border-radius: 50%; background: #22D3EE; filter: blur(55px); opacity: 0.25;"></div>
+    <div class="particle" style="top: 16px; left: 46px; width: 4px; height: 4px; background: #22D3EE; animation-duration: 3.5s;"></div>
+    <div class="particle" style="top: 90px; right: 90px; width: 3px; height: 3px; background: #B08CF7; animation-duration: 4.1s; animation-delay: 0.5s;"></div>
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between;">
+      <a href="Home.dc.html" aria-label="Indietro" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F1EEFC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); border-radius: 20px; padding: 6px 12px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span style="font-size: 10.5px; color: #22D3EE; font-weight: 700;">Sincronizzato</span>
+      </div>
+    </div>
+    <div style="position: relative; display: flex; align-items: center; gap: 16px; margin-top: 20px;">
+      <svg width="78" height="78" viewBox="0 0 78 78">
+        <defs><linearGradient id="gD" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C3AED"/><stop offset="100%" stop-color="#22D3EE"/></linearGradient></defs>
+        <circle cx="39" cy="39" r="32" fill="none" stroke="#2A2050" stroke-width="7"/>
+        <circle class="progressRing" cx="39" cy="39" r="32" fill="none" stroke="url(#gD)" stroke-width="7" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="201" transform="rotate(-90 39 39)"/>
+        <text x="39" y="44" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF" font-family="sans-serif">70%</text>
+      </svg>
+      <div>
+        <div class="catBadge" style="display: inline-block; font-size: 10.5px; font-weight: 700; color: #17102E; background: #B08CF7; padding: 2px 9px; border-radius: 10px;">Lavoro</div>
+        <div style="font-size: 19px; color: #FFFFFF; font-weight: 800; margin-top: 6px; line-height: 1.22;">Presentare il piano<br>del negozio</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="particle" style="top: 320px; left: 14px; width: 3px; height: 3px; background: #22D3EE; animation-duration: 3.8s; animation-delay: 0.7s;"></div>
+  <div class="particle" style="top: 480px; right: 12px; width: 4px; height: 4px; background: #B08CF7; animation-duration: 4.2s; animation-delay: 0.2s;"></div>
+
+  <div style="flex-grow: 1; overflow: hidden; padding: 22px 22px 0 22px; display: flex; flex-direction: column; gap: 16px;">
+
+    <!-- Summary sentence with decorative quote -->
+    <div class="rise1" style="position: relative; background: #1B1236; border: 1px solid rgba(124,58,237,0.3); border-radius: 18px; padding: 22px 19px 18px 19px; overflow: hidden;">
+      <svg width="34" height="26" viewBox="0 0 34 26" style="position: absolute; top: 12px; left: 14px; opacity: 0.6;"><path d="M0 26V14.7C0 6.1 5.1.7 12.6 0l1 3.6c-4.8.9-7.4 4-7.7 8.1H12v14.3H0zm18.4 0V14.7c0-8.6 5.1-14 12.6-14.7l1 3.6c-4.8.9-7.4 4-7.7 8.1H30.4v14.3H18.4z" fill="#22D3EE"/></svg>
+      <div style="font-size: 13.5px; color: #D8D0EE; line-height: 1.58; font-style: italic; position: relative; margin-top: 8px;">Entro il 24 novembre presenterò al team un piano completo, con tre azioni già avviate — pronto perché testato prima con i numeri reali della cassa.</div>
+    </div>
+
+    <!-- Momentum visual instead of criteria chips -->
+    <div class="rise2" style="background: #1B1236; border: 1px solid rgba(124,58,237,0.28); border-radius: 16px; padding: 17px; display: flex; align-items: center; gap: 14px;">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="18" fill="none" stroke="#2A2050" stroke-width="5"/>
+        <circle cx="22" cy="22" r="18" fill="none" stroke="url(#gD)" stroke-width="5" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="34" transform="rotate(-90 22 22)"/>
+      </svg>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 13.5px; font-weight: 700; color: #F1EEFC;">Passo dopo passo</div>
+        <div style="font-size: 11.5px; color: #9B8FC7; margin-top: 2px;">5 azioni fatte su 7 verso la scadenza</div>
+      </div>
+    </div>
+
+    <a href="PromemoriaCheckin.dc.html" class="rise3" style="display: flex; align-items: center; gap: 10px; background: #1B1236; border: 1px solid rgba(124,58,237,0.28); border-radius: 14px; padding: 12px 14px;">
+      <span class="bell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></span>
+      <span style="flex-grow: 1; font-size: 12px; color: #C9C0E3; font-weight: 500;">Domani: "sotto il tuo controllo?"</span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6E6291" stroke-width="2.6" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+
+  <div style="padding: 16px 22px 26px 22px; display: flex; gap: 10px;">
+    <a href="Home.dc.html" style="flex: 1;">
+      <div style="border: 1.5px solid rgba(124,58,237,0.35); border-radius: 14px; padding: 14px; text-align: center;">
+        <span style="font-size: 13.5px; font-weight: 600; color: #9B8FC7;">Posticipa</span>
+      </div>
+    </a>
+    <a href="Celebrazione.dc.html" style="flex: 1.4;">
+      <div class="ctaGlow gradMove" style="background: linear-gradient(120deg, #7C3AED, #22D3EE, #7C3AED); border-radius: 14px; padding: 14px; text-align: center;">
+        <span style="font-size: 13.5px; font-weight: 700; color: #FFFFFF;">Segna come raggiunto</span>
+      </div>
+    </a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Northstar — Promemoria</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; background: #0F0920; color: #F1EEFC; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .rise1 { animation: fadeUp 0.5s ease both; }
+  .rise2 { animation: fadeUp 0.5s ease 0.1s both; }
+  .rise3 { animation: fadeUp 0.5s ease 0.2s both; }
+  .rise4 { animation: fadeUp 0.5s ease 0.3s both; }
+  @keyframes bellRing { 0%, 100% { transform: rotate(0deg); } 5% { transform: rotate(14deg); } 10% { transform: rotate(-12deg); } 15% { transform: rotate(8deg); } 20% { transform: rotate(-6deg); } 25%,100% { transform: rotate(0deg); } }
+  .bell { display: inline-flex; animation: bellRing 1.8s ease-in-out infinite; transform-origin: top center; }
+  @keyframes glowPulse { 0%,100% { box-shadow: 0 0 18px rgba(124,58,237,0.5); transform: scale(1); } 50% { box-shadow: 0 0 40px rgba(34,211,238,0.65); transform: scale(1.025); } }
+  .ctaGlow { animation: glowPulse 1.6s ease-in-out infinite; }
+  @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); } }
+  .tw1 { animation: twinkle 2s ease-in-out infinite; }
+  .tw2 { animation: twinkle 2.6s ease-in-out infinite 0.5s; }
+  @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .gradMove { background-size: 220% 220%; animation: gradientShift 2.2s ease-in-out infinite; }
+  @keyframes driftPart { 0%,100% { transform: translateY(0) translateX(0); opacity: 0.25; } 50% { transform: translateY(-14px) translateX(5px); opacity: 0.9; } }
+  .particle { position: absolute; border-radius: 50%; animation: driftPart ease-in-out infinite; }
+  @keyframes shimmer { 0% { transform: translateX(-120%) skewX(-15deg); } 100% { transform: translateX(220%) skewX(-15deg); } }
+  .shimmerWrap { position: relative; overflow: hidden; }
+  .shimmerWrap::after { content: ""; position: absolute; top: 0; left: 0; width: 35%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); animation: shimmer 3.4s ease-in-out infinite; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0F0920; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <div style="position: relative; padding: 22px 22px 24px 22px; background: linear-gradient(135deg, #1B1236, #241849); overflow: hidden; border-bottom: 1px solid rgba(124,58,237,0.25);">
+    <svg class="tw1" style="position: absolute; top: 18px; left: 50px;" width="7" height="7" viewBox="0 0 24 24" fill="#22D3EE"><circle cx="12" cy="12" r="12"/></svg>
+    <svg class="tw2" style="position: absolute; top: 34px; right: 60px;" width="5" height="5" viewBox="0 0 24 24" fill="#B08CF7"><circle cx="12" cy="12" r="12"/></svg>
+    <div class="particle" style="top: 10px; left: 120px; width: 3px; height: 3px; background: #22D3EE; animation-duration: 3.6s; animation-delay: 0.4s;"></div>
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between;">
+      <a href="ObiettivoDettaglio.dc.html" aria-label="Chiudi" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F1EEFC" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </a>
+      <div style="font-size: 11px; color: #9B8FC7; font-weight: 700;">CHECK-IN</div>
+    </div>
+  </div>
+
+  <div class="particle" style="top: 300px; left: 20px; width: 3px; height: 3px; background: #22D3EE; animation-duration: 3.9s; animation-delay: 0.2s;"></div>
+  <div class="particle" style="top: 420px; right: 24px; width: 4px; height: 4px; background: #B08CF7; animation-duration: 4.2s; animation-delay: 0.8s;"></div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 30px; text-align: center;">
+
+    <div class="rise1 gradMove" style="width: 70px; height: 70px; border-radius: 22px; background: linear-gradient(120deg, #7C3AED, #22D3EE, #7C3AED); display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+      <span class="bell"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></span>
+    </div>
+
+    <div class="rise2" style="display: inline-block; font-size: 10.5px; letter-spacing: 0.4px; text-transform: uppercase; color: #B08CF7; background: rgba(124,58,237,0.18); border-radius: 8px; padding: 4px 10px; font-weight: 700; margin-bottom: 14px;">Sotto il tuo controllo</div>
+    <div class="rise2" style="font-size: 22px; line-height: 1.32; font-weight: 800; color: #FFFFFF; letter-spacing: -0.3px;">"Presentare il piano" dipende<br>ancora solo da te?</div>
+    <div class="rise3" style="font-size: 13px; color: #9B8FC7; margin-top: 12px; line-height: 1.55; max-width: 270px;">Un check rapido su uno dei criteri del tuo obiettivo, per tenerlo vivo e realistico.</div>
+  </div>
+
+  <div class="rise4" style="padding: 0 24px 40px 24px; display: flex; flex-direction: column; gap: 10px;">
+    <a href="ObiettivoDettaglio.dc.html" class="shimmerWrap" style="display: block;">
+      <div class="ctaGlow gradMove" style="background: linear-gradient(120deg, #7C3AED, #22D3EE, #7C3AED); border-radius: 14px; padding: 15px; text-align: center;">
+        <span style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Sì, rispondi ora</span>
+      </div>
+    </a>
+    <a href="Home.dc.html" style="text-align: center; font-size: 13px; color: #8A7FB0; padding: 6px; font-weight: 500;">Più tardi</a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

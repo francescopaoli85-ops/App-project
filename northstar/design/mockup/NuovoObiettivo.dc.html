@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Northstar — Nuovo obiettivo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; background: #0F0920; color: #F1EEFC; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(124,58,237,0.6); } 100% { box-shadow: 0 0 0 34px rgba(124,58,237,0); } }
+  @keyframes pulse2 { 0% { box-shadow: 0 0 0 0 rgba(34,211,238,0.45); } 100% { box-shadow: 0 0 0 54px rgba(34,211,238,0); } }
+  @keyframes bar { 0%,100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+  .ring { animation: pulse 1.3s ease-out infinite; }
+  .ring2 { animation: pulse2 1.3s ease-out 0.3s infinite; }
+  @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .gradMove { background-size: 220% 220%; animation: gradientShift 2.2s ease-in-out infinite; }
+  @keyframes driftPart { 0%,100% { transform: translateY(0) translateX(0); opacity: 0.25; } 50% { transform: translateY(-14px) translateX(5px); opacity: 0.9; } }
+  .particle { position: absolute; border-radius: 50%; animation: driftPart ease-in-out infinite; }
+  .wave span { display: inline-block; width: 3px; margin: 0 2px; border-radius: 2px; background: #7C3AED; height: 16px; transform-origin: center; animation: bar 0.85s ease-in-out infinite; }
+  .wave span:nth-child(2){animation-delay:.15s;background:#9857F0}.wave span:nth-child(3){animation-delay:.3s;background:#5FA8F5}.wave span:nth-child(4){animation-delay:.45s;background:#3EC2EE}.wave span:nth-child(5){animation-delay:.6s;background:#22D3EE}
+  @keyframes dotPop { 0% { transform: scaleX(0); opacity: 0; } 60% { transform: scaleX(1.15); opacity: 1; } 100% { transform: scaleX(1); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .dot { transform-origin: left center; animation: dotPop 0.5s cubic-bezier(.2,.8,.2,1) both; }
+  .dot:nth-child(1){animation-delay:.02s}.dot:nth-child(2){animation-delay:.1s}.dot:nth-child(3){animation-delay:.18s}
+  .rise1 { animation: fadeUp 0.5s ease both; }
+  .rise2 { animation: fadeUp 0.5s ease 0.12s both; }
+  @keyframes badgePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.35); } 50% { box-shadow: 0 0 0 6px rgba(124,58,237,0); } }
+  .badgeP { animation: badgePulse 2.2s ease-in-out infinite; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0F0920; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <!-- Header band -->
+  <div style="position: relative; padding: 22px 22px 24px 22px; background: linear-gradient(135deg, #1B1236, #241849); overflow: hidden; border-bottom: 1px solid rgba(124,58,237,0.25);">
+    <div style="position: absolute; top: -60px; right: -50px; width: 160px; height: 160px; border-radius: 50%; background: #7C3AED; filter: blur(50px); opacity: 0.35;"></div>
+    <div class="particle" style="top: 20px; left: 30px; width: 4px; height: 4px; background: #22D3EE; animation-duration: 3.4s;"></div>
+    <div class="particle" style="top: 60px; right: 60px; width: 3px; height: 3px; background: #B08CF7; animation-duration: 4s; animation-delay: 0.6s;"></div>
+    <div class="particle" style="top: 10px; left: 220px; width: 3px; height: 3px; background: #22D3EE; animation-duration: 3.7s; animation-delay: 0.3s;"></div>
+    <div class="particle" style="top: 70px; left: 300px; width: 4px; height: 4px; background: #B08CF7; animation-duration: 4.3s; animation-delay: 0.9s;"></div>
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between;">
+      <a href="Home.dc.html" aria-label="Chiudi" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F1EEFC" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </a>
+      <div style="font-size: 11px; color: #9B8FC7; font-weight: 700;">PASSO 3 / 6</div>
+    </div>
+    <div style="position: relative; display: flex; gap: 5px; padding-top: 18px;">
+      <span class="dot" style="flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #7C3AED, #22D3EE);"></span>
+      <span class="dot" style="flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #7C3AED, #22D3EE);"></span>
+      <span class="dot" style="flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #7C3AED, #22D3EE);"></span>
+      <span style="flex: 1; height: 4px; border-radius: 2px; background: #2A2050;"></span>
+      <span style="flex: 1; height: 4px; border-radius: 2px; background: #2A2050;"></span>
+      <span style="flex: 1; height: 4px; border-radius: 2px; background: #2A2050;"></span>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; padding: 26px 26px 10px 26px; gap: 16px;">
+    <div class="rise1">
+      <div class="badgeP" style="display: inline-block; font-size: 10.5px; letter-spacing: 0.4px; text-transform: uppercase; color: #B08CF7; background: rgba(124,58,237,0.18); border-radius: 8px; padding: 4px 10px; font-weight: 700;">Verificabile</div>
+      <div style="font-size: 24px; line-height: 1.28; font-weight: 800; margin-top: 15px; color: #FFFFFF; letter-spacing: -0.3px;">Come farai a sapere<br>di averlo raggiunto?</div>
+      <div style="font-size: 13px; color: #9B8FC7; margin-top: 8px; line-height: 1.5;">Un segnale concreto che puoi vedere, sentire o misurare.</div>
+    </div>
+
+    <div class="rise2" style="background: #1B1236; border: 1px solid rgba(124,58,237,0.28); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="font-size: 12.5px; color: #C9C0E3; font-weight: 500;">Specifico: correre 5 km senza fermarmi</span>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+      <div style="position: relative; width: 116px; height: 116px; display: flex; align-items: center; justify-content: center;">
+        <svg style="position: absolute; width: 116px; height: 116px; opacity: 0.4;" viewBox="0 0 116 116"><circle cx="58" cy="58" r="57" fill="none" stroke="#4A3F82" stroke-width="1" stroke-dasharray="2 7"/></svg>
+        <div class="ring2" style="position: absolute; width: 92px; height: 92px; border-radius: 50%;"></div>
+        <div class="ring" style="position: absolute; width: 92px; height: 92px; border-radius: 50%;"></div>
+        <div class="gradMove" style="width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(120deg, #7C3AED, #22D3EE, #7C3AED); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(124,58,237,0.6);">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; background: rgba(124,58,237,0.18); border-radius: 20px; padding: 8px 16px;">
+        <span class="wave"><span></span><span></span><span></span><span></span><span></span></span>
+        <span style="font-size: 12px; color: #B08CF7; font-weight: 700;">Ti sto ascoltando…</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 0 24px 28px 24px; display: flex; justify-content: center;">
+    <span style="font-size: 13px; color: #6E6291; font-weight: 600;">Scrivi invece</span>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

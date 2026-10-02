@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Northstar — Collega calendario</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; background: #0F0920; color: #F1EEFC; }
+  a { color: inherit; text-decoration: none; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .rise1 { animation: fadeUp 0.5s ease both; }
+  .rise2 { animation: fadeUp 0.5s ease 0.1s both; }
+  .rise3 { animation: fadeUp 0.5s ease 0.2s both; }
+  .card { animation: fadeUp 0.45s cubic-bezier(.2,.8,.2,1) both; }
+  .card:nth-child(1){animation-delay:.28s}.card:nth-child(2){animation-delay:.36s}.card:nth-child(3){animation-delay:.44s}
+  @keyframes pulseBlob { 0%,100% { opacity: 0.45; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.3); } }
+  .blobA { animation: pulseBlob 3s ease-in-out infinite; }
+  @keyframes badgeGlow { 0%,100% { box-shadow: 0 0 20px rgba(124,58,237,0.55); transform: translateY(0); } 50% { box-shadow: 0 0 40px rgba(34,211,238,0.75); transform: translateY(-6px); } }
+  .badgeG { animation: badgeGlow 1.8s ease-in-out infinite; }
+  @keyframes tick { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } }
+  .tick { animation: tick 2s ease-in-out infinite; transform-origin: 12px 13px; }
+  @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .gradMove { background-size: 220% 220%; animation: gradientShift 2.2s ease-in-out infinite; }
+  @keyframes driftPart { 0%,100% { transform: translateY(0) translateX(0); opacity: 0.25; } 50% { transform: translateY(-14px) translateX(5px); opacity: 0.9; } }
+  .particle { position: absolute; border-radius: 50%; animation: driftPart ease-in-out infinite; }
+  @keyframes shimmer { 0% { transform: translateX(-120%) skewX(-15deg); } 100% { transform: translateX(220%) skewX(-15deg); } }
+  .shimmerWrap { position: relative; overflow: hidden; }
+  .shimmerWrap::after { content: ""; position: absolute; top: 0; left: 0; width: 35%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent); animation: shimmer 3.4s ease-in-out infinite; }
+  @keyframes check { 0% { stroke-dashoffset: 20; } 100% { stroke-dashoffset: 0; } }
+  .checkAnim { stroke-dasharray: 20; animation: check 0.6s ease-out both; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0F0920; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <div class="blobA" style="position: absolute; top: -80px; right: -70px; width: 240px; height: 240px; border-radius: 50%; background: #22D3EE; filter: blur(55px); opacity: 0.35;"></div>
+  <div class="particle" style="top: 50px; left: 24px; width: 4px; height: 4px; background: #22D3EE; animation-duration: 3.5s;"></div>
+  <div class="particle" style="top: 260px; right: 20px; width: 3px; height: 3px; background: #B08CF7; animation-duration: 4.1s; animation-delay: 0.6s;"></div>
+  <div class="particle" style="top: 560px; left: 18px; width: 3px; height: 3px; background: #7C3AED; animation-duration: 3.8s; animation-delay: 0.3s;"></div>
+
+  <div style="position: relative; padding: 26px 22px 10px 22px; display: flex; justify-content: flex-end;">
+    <a href="Home.dc.html" aria-label="Chiudi" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F1EEFC" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </a>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; padding: 6px 28px 0 28px; position: relative;">
+
+    <div class="rise1 badgeG gradMove" style="width: 66px; height: 66px; border-radius: 20px; background: linear-gradient(120deg, #7C3AED, #22D3EE, #7C3AED); display: flex; align-items: center; justify-content: center; margin-bottom: 22px;">
+      <svg class="tick" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+
+    <div class="rise1" style="font-size: 24px; color: #FFFFFF; font-weight: 800; line-height: 1.25; letter-spacing: -0.3px;">Northstar funziona meglio<br>con Google Calendar</div>
+    <div class="rise2" style="font-size: 13.5px; color: #9B8FC7; margin-top: 10px; line-height: 1.55;">Collega il calendario e le scadenze dei tuoi obiettivi diventano promemoria puntuali, senza doverli riscrivere a mano.</div>
+
+    <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
+      <div class="card" style="display: flex; align-items: center; gap: 12px; background: #1B1236; border: 1px solid rgba(124,58,237,0.28); border-radius: 14px; padding: 13px 14px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline class="checkAnim" points="20 6 9 17 4 12"/></svg>
+        <span style="font-size: 12.5px; color: #D8D0EE; font-weight: 500;">Scadenze aggiunte in automatico</span>
+      </div>
+      <div class="card" style="display: flex; align-items: center; gap: 12px; background: #1B1236; border: 1px solid rgba(124,58,237,0.28); border-radius: 14px; padding: 13px 14px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline class="checkAnim" points="20 6 9 17 4 12"/></svg>
+        <span style="font-size: 12.5px; color: #D8D0EE; font-weight: 500;">Promemoria coordinati con la tua agenda reale</span>
+      </div>
+      <div class="card" style="display: flex; align-items: center; gap: 12px; background: #1B1236; border: 1px solid rgba(124,58,237,0.28); border-radius: 14px; padding: 13px 14px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline class="checkAnim" points="20 6 9 17 4 12"/></svg>
+        <span style="font-size: 12.5px; color: #D8D0EE; font-weight: 500;">Puoi scollegarlo quando vuoi dalle impostazioni</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 20px 26px 46px 26px; display: flex; flex-direction: column; gap: 12px; position: relative;">
+    <a href="Home.dc.html" class="shimmerWrap" style="display: block;">
+      <div class="gradMove" style="background: linear-gradient(120deg, #7C3AED, #22D3EE, #7C3AED); border-radius: 14px; padding: 15px; text-align: center; box-shadow: 0 0 30px rgba(124,58,237,0.4), 0 18px 36px rgba(0,0,0,0.5);">
+        <span style="font-size: 14.5px; font-weight: 700; color: #FFFFFF;">Collega ora</span>
+      </div>
+    </a>
+    <a href="Home.dc.html" style="text-align: center; font-size: 13px; color: #8A7FB0; padding: 6px; font-weight: 500;">Più tardi</a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
