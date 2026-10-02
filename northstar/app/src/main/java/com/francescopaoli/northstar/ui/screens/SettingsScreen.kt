@@ -116,6 +116,7 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                     Label("Esperienza")
                     Toggle("Voce guida nelle domande", s.voiceGuide, vm::setVoice)
                     Toggle("Check-in periodici", s.checkins, vm::setCheckins)
+                    Toggle("Effetto giroscopio (inclina il telefono)", s.parallaxOn, vm::setParallax)
                     Toggle("Effetti ridotti (risparmia batteria)", s.reducedEffects, vm::setReducedEffects)
                 }
 

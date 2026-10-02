@@ -121,6 +121,12 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
     DisposableEffect(Unit) { onDispose { ng.voice.silence(); vm.sound.music.setVoice(false, false) } }
     // musica a strati: ogni passo aggiunge strumenti, il riepilogo è l'apoteosi (livello 7)
     LaunchedEffect(ng.step) { vm.sound.music.setScene(com.francescopaoli.northstar.audio.Scene.Flow(ng.step + 1)) }
+    // nota d'arpa a ogni passo avanti (col bottone o in automatico)
+    var lastStep by remember { mutableStateOf(ng.step) }
+    LaunchedEffect(ng.step) {
+        if (ng.step > lastStep) vm.sound.sfx.step(ng.step)
+        lastStep = ng.step
+    }
     // quando la guida parla o ascolta, la musica si abbassa
     LaunchedEffect(voiceState.speaking, voiceState.listening) {
         vm.sound.music.setVoice(voiceState.speaking, voiceState.listening)
@@ -198,6 +204,20 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
 
             // barra in basso: passa a testo/voce, indietro, avanti
             Column(Modifier.navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 16.dp)) {
+                if (!ng.isSummary && !ng.typing) HintBubble(
+                    "flow_auto", "Rispondi a voce: dopo 3 secondi passo da solo alla domanda dopo.",
+                    settings.seenHints, { vm.hintSeen(it) }, Modifier.padding(bottom = 8.dp),
+                )
+                // conto alla rovescia dell'avanti automatico, annullabile
+                androidx.compose.animation.AnimatedVisibility(ng.autoNextIn > 0) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Avanti tra ${ng.autoNextIn}…", color = Neon.Cyan, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        TextLink("Annulla", ng::cancelAutoNext, color = Neon.Text2)
+                    }
+                }
                 if (!ng.isSummary && voiceState.available) {
                     TextLink(
                         if (ng.typing) "Parla invece" else "Scrivi invece", ng::toggleTyping,
@@ -213,7 +233,7 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                             else -> "Avanti"
                         },
                         onClick = {
-                            if (!ng.isSummary) { vm.sound.sfx.step(ng.step + 1); ng.next() }
+                            if (!ng.isSummary) ng.next()
                             else if (!saving) {
                                 saving = true
                                 val first = vm.goals.value.isEmpty()

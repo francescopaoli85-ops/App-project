@@ -14,8 +14,9 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 
 /**
  * Parallasse dal giroscopio: inclinando il telefono stelle e nebulosa si spostano a strati.
+ * Usa il sensore di rotazione; se il telefono non ce l'ha, ripiega sull'accelerometro (c'è sempre).
  * Il sensore è attivo solo con l'app in primo piano.
- * La "posizione neutra" segue lentamente il telefono, così se lo tieni storto non resta tutto spostato.
+ * La "posizione neutra" segue piano il telefono, così se lo tieni storto non resta tutto spostato.
  */
 @Composable
 fun rememberParallax(enabled: Boolean): State<Offset> {
@@ -23,33 +24,29 @@ fun rememberParallax(enabled: Boolean): State<Offset> {
     val state = remember { mutableStateOf(Offset.Zero) }
     LifecycleResumeEffect(enabled) {
         val sm = ctx.getSystemService(SensorManager::class.java)
-        val sensor = sm?.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR)
+        val rotation = sm?.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR)
             ?: sm?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        val gravity = sm?.getDefaultSensor(Sensor.TYPE_GRAVITY) ?: sm?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val sensor = rotation ?: gravity
         if (!enabled || sm == null || sensor == null) {
             state.value = Offset.Zero
             return@LifecycleResumeEffect onPauseOrDispose { }
         }
+        val tracker = TiltTracker()
         val rot = FloatArray(9)
         val ori = FloatArray(3)
-        var basePitch = Float.NaN
-        var baseRoll = 0f
-        var x = 0f
-        var y = 0f
         val listener = object : SensorEventListener {
             override fun onSensorChanged(e: SensorEvent) {
-                SensorManager.getRotationMatrixFromVector(rot, e.values)
-                SensorManager.getOrientation(rot, ori)
-                val pitch = ori[1]
-                val roll = ori[2]
-                if (basePitch.isNaN()) { basePitch = pitch; baseRoll = roll }
-                basePitch += (pitch - basePitch) * 0.01f
-                baseRoll += (roll - baseRoll) * 0.01f
-                // circa 20° di inclinazione = spostamento massimo; filtro per togliere i tremolii
-                val tx = ((roll - baseRoll) / 0.35f).coerceIn(-1f, 1f)
-                val ty = ((pitch - basePitch) / 0.35f).coerceIn(-1f, 1f)
-                x += (tx - x) * 0.15f
-                y += (ty - y) * 0.15f
-                state.value = Offset(x, y)
+                val (roll, pitch) = if (sensor === rotation) {
+                    SensorManager.getRotationMatrixFromVector(rot, e.values)
+                    SensorManager.getOrientation(rot, ori)
+                    ori[2] to ori[1]
+                } else {
+                    // accelerometro: la gravità sugli assi x/y dice quanto è inclinato (radianti circa)
+                    val g = SensorManager.GRAVITY_EARTH
+                    (-e.values[0] / g).coerceIn(-1f, 1f) to (e.values[1] / g).coerceIn(-1f, 1f)
+                }
+                state.value = tracker.update(roll, pitch)
             }
             override fun onAccuracyChanged(s: Sensor?, accuracy: Int) {}
         }
@@ -57,4 +54,26 @@ fun rememberParallax(enabled: Boolean): State<Offset> {
         onPauseOrDispose { sm.unregisterListener(listener) }
     }
     return state
+}
+
+/**
+ * Da inclinazione (radianti) a spostamento -1..1.
+ * Circa 15° = spostamento massimo; la posizione neutra rientra in ~8 secondi.
+ */
+class TiltTracker(private val range: Float = 0.26f, private val recenter: Float = 0.0025f, private val smooth: Float = 0.18f) {
+    private var baseRoll = Float.NaN
+    private var basePitch = 0f
+    private var x = 0f
+    private var y = 0f
+
+    fun update(roll: Float, pitch: Float): Offset {
+        if (baseRoll.isNaN()) { baseRoll = roll; basePitch = pitch }
+        baseRoll += (roll - baseRoll) * recenter
+        basePitch += (pitch - basePitch) * recenter
+        val tx = ((roll - baseRoll) / range).coerceIn(-1f, 1f)
+        val ty = ((pitch - basePitch) / range).coerceIn(-1f, 1f)
+        x += (tx - x) * smooth
+        y += (ty - y) * smooth
+        return Offset(x, y)
+    }
 }

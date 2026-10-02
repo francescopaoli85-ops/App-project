@@ -19,6 +19,7 @@ object GoalMapper {
         "postponedCount" to g.postponedCount,
         "nextCheckinIndex" to g.nextCheckinIndex,
         "lastCheckinAt" to g.lastCheckinAt,
+        "checkinPending" to g.checkinPending,
         "calendarEventId" to g.calendarEventId,
     )
 
@@ -50,6 +51,7 @@ object GoalMapper {
             postponedCount = (m["postponedCount"] as? Number)?.toInt() ?: 0,
             nextCheckinIndex = (m["nextCheckinIndex"] as? Number)?.toInt() ?: 0,
             lastCheckinAt = (m["lastCheckinAt"] as? Number)?.toLong(),
+            checkinPending = m["checkinPending"] as? Boolean ?: false,
             calendarEventId = m["calendarEventId"] as? String,
         )
     }.getOrNull()

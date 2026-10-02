@@ -17,6 +17,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -211,6 +212,8 @@ private fun DueBanner(onYes: () -> Unit, onLater: () -> Unit) {
 @Composable
 private fun ActionsCard(g: Goal, vm: MainViewModel, modifier: Modifier) {
     var newAction by rememberSaveable { mutableStateOf("") }
+    var editing by remember { mutableStateOf<GoalAction?>(null) }
+    val settings by vm.settings.collectAsStateWithLifecycle()
     NeonColumnCard(modifier.fillMaxWidth(), corner = 16.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             ProgressRing(g.progress, 44.dp, 5.dp, delayMs = 200)
@@ -224,7 +227,13 @@ private fun ActionsCard(g: Goal, vm: MainViewModel, modifier: Modifier) {
             }
         }
         Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            g.actions.forEachIndexed { i, a -> ActionRow(a, Modifier.enter(i, 60), { vm.toggleAction(g.id, a.id) }, { vm.removeAction(g.id, a.id) }) }
+            if (g.actions.isNotEmpty()) HintBubble(
+                "detail_longpress", "Tieni premuta un'azione per modificarla o eliminarla.",
+                settings.seenHints, { vm.hintSeen(it) },
+            )
+            g.actions.forEachIndexed { i, a ->
+                ActionRow(a, Modifier.enter(i, 60), { vm.toggleAction(g.id, a.id) }, { editing = a }, { vm.removeAction(g.id, a.id) })
+            }
             if (g.isOpen) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 NeonTextField(newAction, { newAction = it }, "Nuova azione…", singleLine = true, modifier = Modifier.weight(1f))
                 Box(
@@ -235,17 +244,31 @@ private fun ActionsCard(g: Goal, vm: MainViewModel, modifier: Modifier) {
             }
         }
     }
+    editing?.let { a ->
+        QuickTextDialog(
+            title = "Modifica azione", initial = a.text, placeholder = "Azione", confirm = "Salva",
+            onConfirm = { vm.editAction(g.id, a.id, it); editing = null },
+            onDismiss = { editing = null },
+        )
+    }
 }
 
 @Composable
-private fun ActionRow(a: GoalAction, modifier: Modifier, onToggle: () -> Unit, onRemove: () -> Unit) {
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+private fun ActionRow(a: GoalAction, modifier: Modifier, onToggle: () -> Unit, onEdit: () -> Unit, onRemove: () -> Unit) {
     val box by animateColorAsState(if (a.done) Neon.Cyan else Color.Transparent, label = "c")
     val sparks = LocalSparks.current
     var boxCenter by remember { mutableStateOf(Offset.Zero) }
+    var menu by remember { mutableStateOf(false) }
+    Box {
     Row(
         modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-            // spunta = esplosione di scintille dalla casella
-            .clickable(role = Role.Checkbox) { if (!a.done) sparks?.emit(boxCenter, big = true); onToggle() }
+            // tocco = spunta (con scintille), pressione lunga = modifica/elimina
+            .combinedClickable(
+                role = Role.Checkbox,
+                onLongClickLabel = "Modifica o elimina",
+                onLongClick = { menu = true },
+            ) { if (!a.done) sparks?.emit(boxCenter, big = true); onToggle() }
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -259,7 +282,17 @@ private fun ActionRow(a: GoalAction, modifier: Modifier, onToggle: () -> Unit, o
             a.text, color = if (a.done) Neon.Text3 else Neon.TextMid, fontSize = 13.sp, modifier = Modifier.weight(1f),
             textDecoration = if (a.done) TextDecoration.LineThrough else null,
         )
-        Icon(NsIcons.Trash, "Rimuovi", tint = Neon.Text3, modifier = Modifier.size(15.dp).clickable(onClick = onRemove))
+    }
+    androidx.compose.material3.DropdownMenu(menu, { menu = false }, containerColor = Neon.SurfaceHi) {
+        androidx.compose.material3.DropdownMenuItem(
+            text = { Text("Modifica", color = Neon.Text) }, onClick = { menu = false; onEdit() },
+        )
+        androidx.compose.material3.DropdownMenuItem(
+            text = { Text("Elimina", color = Color(0xFFFF8FA3)) },
+            leadingIcon = { Icon(NsIcons.Trash, null, tint = Color(0xFFFF8FA3), modifier = Modifier.size(15.dp)) },
+            onClick = { menu = false; onRemove() },
+        )
+    }
     }
 }
 

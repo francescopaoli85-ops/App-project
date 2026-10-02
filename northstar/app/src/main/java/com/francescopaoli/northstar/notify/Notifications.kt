@@ -24,7 +24,7 @@ object Notifications {
     }
 
     /** Notifica che, toccata, apre direttamente la schermata indicata da [route]. */
-    fun show(context: Context, id: Int, title: String, text: String, route: String) {
+    fun show(context: Context, id: Int, title: String, text: String, route: String, checkinGoalId: String? = null) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
         ) return
@@ -32,7 +32,7 @@ object Notifications {
             .putExtra(EXTRA_ROUTE, route)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pi = PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val n = NotificationCompat.Builder(context, CHANNEL)
+        val b = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_star)
             .setColor(0xFF7C3AED.toInt())
             .setContentTitle(title)
@@ -40,7 +40,15 @@ object Notifications {
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(pi)
             .setAutoCancel(true)
-            .build()
-        NotificationManagerCompat.from(context).notify(id, n)
+        // check-in: si risponde direttamente dalla notifica
+        if (checkinGoalId != null) {
+            val yes = Intent(context, CheckinActionReceiver::class.java)
+                .putExtra(CheckinActionReceiver.EXTRA_GOAL, checkinGoalId)
+                .putExtra(CheckinActionReceiver.EXTRA_NOTIF, id)
+            val yesPi = PendingIntent.getBroadcast(context, id, yes, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            b.addAction(0, "Sì, tutto ok", yesPi)
+            b.addAction(0, "Qualcosa è cambiato", pi)
+        }
+        NotificationManagerCompat.from(context).notify(id, b.build())
     }
 }

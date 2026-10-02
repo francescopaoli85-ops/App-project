@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,6 +71,7 @@ fun HomeScreen(
     onTab: (Tab) -> Unit,
     onWeek: () -> Unit = {},
     onPolaris: () -> Unit = {},
+    onCheckin: (String) -> Unit = {},
 ) {
     val goals by vm.goals.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
@@ -88,6 +90,9 @@ fun HomeScreen(
     val achieved = goals.count { it.status == GoalStatus.ACHIEVED }
     val streak = Engagement.streakWeeks(goals)
     val doneThisWeek = Engagement.doneThisWeek(goals)
+    // "+" su una card o "Scegli un piccolo passo": nuovo passo senza aprire l'obiettivo
+    var quickAddFor by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    val checkinGoal = open.firstOrNull { com.francescopaoli.northstar.domain.Checkins.needsAnswer(it) }
 
     NeonBackdrop(particles = 8, seed = 2) {
         Twinkles()
@@ -118,6 +123,12 @@ fun HomeScreen(
                         }
                     }
                 }
+                if (goals.isNotEmpty()) item(key = "hint-star") {
+                    HintBubble(
+                        "home_star", "Tocca la stella in alto: la tua Stella Polare, tutti gli obiettivi in un colpo d'occhio.",
+                        settings.seenHints, { vm.hintSeen(it) }, Modifier.animateItem(),
+                    )
+                }
                 item {
                     GradientButton(
                         "+ Nuovo obiettivo", onNew, Modifier.fillMaxWidth().padding(top = 4.dp),
@@ -131,12 +142,21 @@ fun HomeScreen(
                         CalendarBanner(onCalendar, vm::hideCalendarBanner, Modifier.enter(0, baseDelayMs = 150).animateItem())
                     }
                 }
+                // check-in in un tocco, direttamente qui
+                checkinGoal?.let { g ->
+                    item(key = "checkin-${g.id}") {
+                        CheckinCard(
+                            g, onYes = { vm.confirmCheckin(g.id) }, onUpdate = { onCheckin(g.id) },
+                            modifier = Modifier.enter(0, baseDelayMs = 200).animateItem(),
+                        )
+                    }
+                }
                 if (open.isNotEmpty()) {
                     item(key = "week") {
                         ThisWeekCard(
                             open, doneThisWeek.map { it.second.id }.toSet(), streak,
                             onToggle = { g, a -> vm.toggleAction(g, a) },
-                            onPick = onOpen, onWeek = onWeek,
+                            onPick = { quickAddFor = it }, onWeek = onWeek,
                             modifier = Modifier.enter(0, baseDelayMs = 250),
                         )
                     }
@@ -145,12 +165,49 @@ fun HomeScreen(
                     item { EmptyState(Modifier.enter(1)) }
                 }
                 val adSlot = if (showAds) AdPlacement.slot(open.size, AdPlacement.HOME_AFTER) else null
+                // un suggerimento alla volta: questo arriva dopo quello della stella
+                if (open.isNotEmpty() && "home_star" in settings.seenHints) item(key = "hint-add") {
+                    HintBubble(
+                        "home_add", "Il + su ogni obiettivo aggiunge un passo al volo, senza aprirlo.",
+                        settings.seenHints, { vm.hintSeen(it) }, Modifier.animateItem(),
+                    )
+                }
                 open.forEachIndexed { i, g ->
-                    item(key = g.id) { GoalCard(g, Modifier.enter(i, baseDelayMs = 50)) { onOpen(g.id) } }
+                    item(key = g.id) { GoalCard(g, Modifier.enter(i, baseDelayMs = 50), onAdd = { quickAddFor = g.id }) { onOpen(g.id) } }
                     if (adSlot == i + 1) item(key = "ad") { NativeAdCard(Modifier.fillMaxWidth().enter(0, baseDelayMs = 450)) }
                 }
             }
             BottomNav(Tab.HOME, onTab)
+        }
+    }
+
+    quickAddFor?.let { id ->
+        QuickTextDialog(
+            title = "Nuovo passo",
+            placeholder = "Es. 20 minuti di corsa domani",
+            confirm = "Aggiungi",
+            onConfirm = { vm.addAction(id, it); quickAddFor = null },
+            onDismiss = { quickAddFor = null },
+        )
+    }
+}
+
+/** Check-in in Home: si risponde con un tocco, oppure si aggiorna la risposta. */
+@Composable
+private fun CheckinCard(g: Goal, onYes: () -> Unit, onUpdate: () -> Unit, modifier: Modifier) {
+    val crit = com.francescopaoli.northstar.domain.Checkins.nextCriterion(g)
+    com.francescopaoli.northstar.ui.components.NeonColumnCard(modifier.fillMaxWidth(), corner = 17.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Icon(NsIcons.Bell, null, tint = Neon.Cyan, modifier = Modifier.size(16.dp).bellSwing(2200))
+            Text("CHECK-IN · ${crit.label.uppercase()}", color = Neon.Lilac, style = MaterialTheme.typography.labelSmall)
+        }
+        Text(
+            com.francescopaoli.northstar.domain.Checkins.question(g, crit), color = Neon.Text,
+            fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp, modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            com.francescopaoli.northstar.ui.components.GhostButton("Qualcosa è cambiato", onUpdate, Modifier.weight(1f))
+            GradientButton("Sì, tutto ok", onYes, Modifier.weight(1f), corner = 14.dp, glowing = false, tapSound = false)
         }
     }
 }
@@ -169,19 +226,27 @@ private fun Stat(n: Int, label: String, color: Color, modifier: Modifier) {
  */
 @Composable
 private fun CalendarBanner(onConnect: () -> Unit, onHide: () -> Unit, modifier: Modifier) {
-    com.francescopaoli.northstar.ui.components.NeonColumnCard(modifier.fillMaxWidth(), corner = 17.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            GradientIconTile(NsIcons.Calendar, 40.dp, 12.dp, 18.dp, floating = false, iconModifier = Modifier.bellSwing(2600))
-            Column(Modifier.weight(1f)) {
-                Text("Collega Google Calendar", color = Neon.Text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Text("Le scadenze finiscono da sole nella tua agenda.", color = Neon.Text2, fontSize = 12.sp, lineHeight = 17.sp)
-            }
-            Icon(
-                NsIcons.Close, "Nascondi", tint = Neon.Text3,
-                modifier = Modifier.size(28.dp).clip(RoundedCornerShape(14.dp)).clickable(onClickLabel = "Nascondi", onClick = onHide).padding(7.dp),
-            )
+    // una riga sola: tocchi ovunque per collegare, la X la nasconde per una settimana
+    Row(
+        modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Neon.Surface.copy(alpha = 0.7f))
+            .border(1.dp, Neon.Violet.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+            .clickable(onClickLabel = "Collega Google Calendar", onClick = onConnect)
+            .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        GradientIconTile(NsIcons.Calendar, 30.dp, 9.dp, 14.dp, floating = false)
+        Column(Modifier.weight(1f)) {
+            Text("Collega Google Calendar", color = Neon.Text, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text("Scadenze in agenda, in automatico", color = Neon.Text3, fontSize = 11.sp)
         }
-        GradientButton("Collega", onConnect, Modifier.fillMaxWidth().padding(top = 12.dp), corner = 12.dp, glowing = false)
+        Text("Collega", color = Neon.Cyan, fontSize = 12.5.sp, fontWeight = FontWeight.Bold)
+        Icon(
+            NsIcons.Close, "Nascondi", tint = Neon.Text3,
+            modifier = Modifier.size(34.dp).clip(RoundedCornerShape(17.dp)).clickable(onClickLabel = "Nascondi", onClick = onHide).padding(10.dp),
+        )
     }
 }
 
@@ -199,7 +264,7 @@ private fun EmptyState(modifier: Modifier) {
 }
 
 @Composable
-fun GoalCard(g: Goal, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun GoalCard(g: Goal, modifier: Modifier = Modifier, onAdd: (() -> Unit)? = null, onClick: () -> Unit) {
     val postponed = g.status == GoalStatus.POSTPONED
     val pct = (g.progress * 100).toInt()
     val days = g.daysLeft()
@@ -223,6 +288,11 @@ fun GoalCard(g: Goal, modifier: Modifier = Modifier, onClick: () -> Unit) {
             Text(sub, color = if (g.isDue()) Neon.Cyan else Neon.Text3, fontSize = 11.5.sp, modifier = Modifier.padding(top = 4.dp))
         }
         Text("${animatedInt(pct, 1100)}%", color = if (postponed) Neon.Text3 else Neon.Lilac, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        if (onAdd != null) Box(
+            Modifier.size(34.dp).clip(RoundedCornerShape(11.dp)).background(Neon.Violet.copy(alpha = 0.22f))
+                .clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = "Aggiungi un passo", onClick = onAdd),
+            contentAlignment = Alignment.Center,
+        ) { Icon(NsIcons.Plus, "Aggiungi un passo", tint = Neon.Cyan, modifier = Modifier.size(15.dp)) }
     }
 }
 

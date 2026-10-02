@@ -73,7 +73,8 @@ fun NorthstarRoot(container: AppContainer, deepLink: String?, onDeepLinkHandled:
     // tema scelto: cambiando la palette si ricolora tutta l'app
     val palette = com.francescopaoli.northstar.ui.theme.Palettes.byId(settings.theme)
     androidx.compose.runtime.SideEffect { com.francescopaoli.northstar.ui.theme.Neon.palette = palette }
-    val parallax = rememberParallax(fx.full && fx.animated)
+    // giroscopio: opzione a sé, non dipende dagli sfondi animati né dal risparmio energetico
+    val parallax = rememberParallax(settings.parallaxOn)
     CompositionLocalProvider(
         LocalFx provides fx, LocalParallax provides parallax,
         com.francescopaoli.northstar.audio.LocalSound provides container.sound,
@@ -149,6 +150,7 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
                     onTab = { nav.goTab(it) },
                     onWeek = { nav.navigate(Routes.WEEK) },
                     onPolaris = { nav.navigate(Routes.POLARIS) },
+                    onCheckin = { nav.navigate(Routes.checkin(it)) },
                 )
               }
             }

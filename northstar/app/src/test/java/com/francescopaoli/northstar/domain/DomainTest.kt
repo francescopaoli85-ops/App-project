@@ -101,3 +101,30 @@ class EngagementTest {
         assertEquals(1, Engagement.doneThisWeek(listOf(g), wed).size)
     }
 }
+
+class CheckinOneTapTest {
+    private val goal = com.francescopaoli.northstar.data.Goal(
+        answers = mapOf(Criterion.POSITIVO to "Correre 10 km"),
+        deadlineEpochDay = LocalDate.now().plusDays(60).toEpochDay(),
+    )
+
+    @Test fun `check-in notificato resta in Home finché non rispondi`() {
+        assertTrue(Checkins.needsAnswer(goal.copy(checkinPending = true, lastCheckinAt = System.currentTimeMillis())))
+    }
+
+    @Test fun `sì tutto ok fa avanzare il criterio e chiude il check-in`() {
+        val g = Checkins.confirmed(goal.copy(checkinPending = true), now = 1000L)
+        assertEquals(1, g.nextCheckinIndex)
+        assertEquals(1000L, g.lastCheckinAt)
+        assertEquals(false, g.checkinPending)
+        assertEquals(goal.answers, g.answers)
+        assertEquals(false, Checkins.needsAnswer(g, now = 2000L))
+    }
+
+    @Test fun `il nuovo campo sopravvive al salvataggio`() {
+        val back = com.francescopaoli.northstar.data.GoalMapper.fromMap(
+            com.francescopaoli.northstar.data.GoalMapper.toMap(goal.copy(checkinPending = true)),
+        )
+        assertEquals(true, back?.checkinPending)
+    }
+}

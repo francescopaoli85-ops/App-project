@@ -86,8 +86,11 @@ fun CheckinScreen(vm: MainViewModel, id: String, onClose: () -> Unit, onDone: ()
                 Modifier.navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 24.dp).enter(3),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                if (!answering) GradientButton("Sì, rispondi ora", { answering = true }, Modifier.fillMaxWidth())
-                else GradientButton("Salva", { vm.answerCheckin(g.id, crit, text); onDone() }, Modifier.fillMaxWidth())
+                // un tocco: "sì, è ancora così"; se qualcosa è cambiato si aggiorna la risposta
+                if (!answering) {
+                    GradientButton("Sì, tutto ok", { vm.confirmCheckin(g.id); onDone() }, Modifier.fillMaxWidth(), tapSound = false)
+                    com.francescopaoli.northstar.ui.components.GhostButton("Qualcosa è cambiato", { answering = true }, Modifier.fillMaxWidth())
+                } else GradientButton("Salva", { vm.answerCheckin(g.id, crit, text); onDone() }, Modifier.fillMaxWidth())
                 TextLink("Più tardi", onClose, Modifier.fillMaxWidth())
             }
         }

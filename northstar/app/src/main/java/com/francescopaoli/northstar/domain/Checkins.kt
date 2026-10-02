@@ -35,6 +35,17 @@ object Checkins {
         return (total / 4).coerceIn(3, 14)
     }
 
+    /** Check-in da mostrare in Home: già notificato e senza risposta, oppure arrivato il momento. */
+    fun needsAnswer(goal: Goal, now: Long = System.currentTimeMillis()): Boolean =
+        goal.isOpen && !goal.isDue() && (goal.checkinPending || isCheckinDue(goal, now))
+
+    /** Risposta "sì, va tutto bene": il criterio avanza senza cambiare le risposte. */
+    fun confirmed(goal: Goal, now: Long = System.currentTimeMillis()): Goal = goal.copy(
+        nextCheckinIndex = goal.nextCheckinIndex + 1,
+        lastCheckinAt = now,
+        checkinPending = false,
+    )
+
     fun isCheckinDue(goal: Goal, now: Long = System.currentTimeMillis()): Boolean {
         if (!goal.isOpen || goal.isDue()) return false
         val last = goal.lastCheckinAt ?: goal.createdAt

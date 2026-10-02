@@ -41,5 +41,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- "Sì, tutto ok" dalla notifica del check-in -->
+        <receiver android:name=".notify.CheckinActionReceiver" android:exported="false" />
     </application>
 </manifest>

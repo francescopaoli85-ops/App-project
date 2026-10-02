@@ -72,6 +72,8 @@ data class Goal(
     /** Indice del prossimo criterio da richiamare nel check-in (ruota sui 6). */
     val nextCheckinIndex: Int = 0,
     val lastCheckinAt: Long? = null,
+    /** Check-in inviato (notifica) e non ancora risposto: resta in Home finché non rispondi. */
+    val checkinPending: Boolean = false,
     val calendarEventId: String? = null,
 ) {
     val title: String get() = answers[Criterion.POSITIVO].orEmpty().ifBlank { "Nuovo obiettivo" }

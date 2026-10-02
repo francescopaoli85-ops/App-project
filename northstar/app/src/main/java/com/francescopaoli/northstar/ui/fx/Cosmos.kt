@@ -66,7 +66,7 @@ private fun ShaderNebula(shader: android.graphics.RuntimeShader, seed: Int) {
             shader.setFloatUniform("iResolution", size.width, size.height)
             shader.setFloatUniform("iTime", t + seed * 31f)
             // livello più lontano: si sposta poco
-            shader.setFloatUniform("iOffset", p.x * 8.dp.toPx(), p.y * 8.dp.toPx())
+            shader.setFloatUniform("iOffset", p.x * 14.dp.toPx(), p.y * 14.dp.toPx())
             drawRect(brush)
         }
     }
@@ -99,7 +99,7 @@ fun StarField(seed: Int, count: Int, modifier: Modifier = Modifier) {
     Canvas(modifier.fillMaxSize()) {
         val p = parallax.value
         stars.forEach { s ->
-            val shift = (6 + s.depth * 8).dp.toPx()
+            val shift = (10 + s.depth * 14).dp.toPx()
             val k = (sin(2 * PI * (t + s.phase) / s.period).toFloat() + 1f) / 2f
             val c = Offset(size.width * s.x + p.x * shift, size.height * s.y + p.y * shift)
             val alpha = 0.25f + 0.75f * k

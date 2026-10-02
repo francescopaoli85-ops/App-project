@@ -97,7 +97,7 @@ fun NeonBackdrop(
                 if (fx.full) particles else particles / 2,
                 Modifier.fillMaxSize().offset {
                     // particelle = livello più vicino: parallasse più forte
-                    IntOffset((parallax.value.x * 28.dp.toPx()).toInt(), (parallax.value.y * 28.dp.toPx()).toInt())
+                    IntOffset((parallax.value.x * 46.dp.toPx()).toInt(), (parallax.value.y * 46.dp.toPx()).toInt())
                 },
                 seed,
             )

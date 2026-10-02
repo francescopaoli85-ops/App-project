@@ -43,6 +43,10 @@ data class Settings(
     val sfxOn: Boolean = true,
     /** true = sfondi animati anche col risparmio energetico attivo. */
     val animateOnPowerSave: Boolean = false,
+    /** Effetto giroscopio: inclinando il telefono il cielo si sposta a strati. */
+    val parallaxOn: Boolean = true,
+    /** Suggerimenti al primo uso già visti (non ricompaiono). */
+    val seenHints: Set<String> = emptySet(),
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -66,6 +70,8 @@ class SettingsStore(private val context: Context) {
         val musicVolume = androidx.datastore.preferences.core.intPreferencesKey("music_volume")
         val sfxOn = booleanPreferencesKey("sfx_on")
         val animPowerSave = booleanPreferencesKey("animate_on_power_save")
+        val parallax = booleanPreferencesKey("parallax_on")
+        val hints = androidx.datastore.preferences.core.stringSetPreferencesKey("seen_hints")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -90,6 +96,8 @@ class SettingsStore(private val context: Context) {
         musicVolume = this[K.musicVolume] ?: 45,
         sfxOn = this[K.sfxOn] ?: true,
         animateOnPowerSave = this[K.animPowerSave] ?: false,
+        parallaxOn = this[K.parallax] ?: true,
+        seenHints = this[K.hints] ?: emptySet(),
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -121,6 +129,8 @@ class SettingsStore(private val context: Context) {
     suspend fun setAmbientSong(id: String) = context.dataStore.edit { it[K.ambientSong] = id }
     suspend fun setMusicVolume(v: Int) = context.dataStore.edit { it[K.musicVolume] = v.coerceIn(0, 100) }
     suspend fun setAnimateOnPowerSave(v: Boolean) = context.dataStore.edit { it[K.animPowerSave] = v }
+    suspend fun setParallax(v: Boolean) = context.dataStore.edit { it[K.parallax] = v }
+    suspend fun markHintSeen(key: String) = context.dataStore.edit { it[K.hints] = (it[K.hints] ?: emptySet()) + key }
     suspend fun setSfxOn(v: Boolean) = context.dataStore.edit { it[K.sfxOn] = v }
     suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {

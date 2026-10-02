@@ -59,9 +59,10 @@ class CheckinWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
                     "Check-in · ${crit.label}",
                     Checkins.question(goal, crit),
                     Routes.checkin(goal.id),
+                    checkinGoalId = goal.id,
                 )
-                // il criterio avanza solo quando l'utente risponde; qui segno solo l'invio
-                repo.upsert(goal.copy(lastCheckinAt = now))
+                // il criterio avanza solo quando l'utente risponde; qui segno l'invio e la domanda in sospeso
+                repo.upsert(goal.copy(lastCheckinAt = now, checkinPending = true))
                 c.settings.markSent("soft_day", today.toEpochDay())
                 checkinSent = true
             }

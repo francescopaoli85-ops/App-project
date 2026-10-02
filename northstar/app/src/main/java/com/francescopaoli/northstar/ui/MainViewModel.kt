@@ -128,6 +128,19 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
         }))
     }
 
+    /** Check-in in un tocco: "sì, è ancora così". */
+    fun confirmCheckin(id: String) = goal(id)?.let {
+        c.sound.sfx.done()
+        save(com.francescopaoli.northstar.domain.Checkins.confirmed(it))
+    }
+
+    fun editAction(id: String, actionId: String, text: String) = goal(id)?.let { g ->
+        if (text.isNotBlank()) save(g.copy(actions = g.actions.map { if (it.id == actionId) it.copy(text = text.trim()) else it }))
+    }
+
+    /** Suggerimenti al primo uso: ciascuno compare una volta sola. */
+    fun hintSeen(key: String) = viewModelScope.launch { c.settings.markHintSeen(key) }
+
     fun removeAction(id: String, actionId: String) = goal(id)?.let { g ->
         save(g.copy(actions = g.actions.filterNot { it.id == actionId }))
     }
@@ -167,6 +180,7 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
                 summary = SummaryBuilder.build(answers, it.deadline),
                 nextCheckinIndex = it.nextCheckinIndex + 1,
                 lastCheckinAt = System.currentTimeMillis(),
+                checkinPending = false,
             ),
         )
     }
@@ -237,6 +251,7 @@ class MainViewModel(private val c: AppContainer) : ViewModel() {
     fun setAmbientSong(id: String) = viewModelScope.launch { c.settings.setAmbientSong(id) }
     fun setMusicVolume(v: Int) = viewModelScope.launch { c.settings.setMusicVolume(v) }
     fun setAnimateOnPowerSave(v: Boolean) = viewModelScope.launch { c.settings.setAnimateOnPowerSave(v) }
+    fun setParallax(v: Boolean) = viewModelScope.launch { c.settings.setParallax(v) }
     fun setSfxOn(v: Boolean) = viewModelScope.launch { c.settings.setSfxOn(v) }
     /** Suoni per le schermate. */
     val sound get() = c.sound
