@@ -121,11 +121,25 @@ fun AchievementsScreen(vm: MainViewModel, onTab: (Tab) -> Unit) {
 /** Quattro numeri che raccontano il tuo percorso. */
 @Composable
 private fun StatsGrid(s: com.francescopaoli.northstar.domain.Stats, modifier: Modifier) {
+    // singolare/plurale giusti ("1 giorno", "2 giorni")
+    fun n(v: Int, one: String, many: String) = if (v == 1) one else many
     val tiles = listOf(
-        Triple("${s.stepsDone}", "passi fatti", "in tutto, su ogni obiettivo"),
-        Triple("${s.achievedThisYear}", "traguardi quest'anno", if (s.achieved > s.achievedThisYear) "${s.achieved} in totale" else "continua così"),
-        Triple(s.avgDays?.let { "$it" } ?: "—", "giorni in media", "dall'idea al traguardo"),
-        Triple(s.topArea?.label ?: "—", "area più forte", if (s.achieved > 0) "${s.onTime} su ${s.achieved} senza rinvii" else "si vedrà presto"),
+        Triple(
+            "${s.stepsDone}", n(s.stepsDone, "azione completata", "azioni completate"),
+            if (s.stepsDone == 0) "spunta le azioni nei tuoi obiettivi" else "in tutto, su ogni obiettivo",
+        ),
+        Triple(
+            "${s.achievedThisYear}", n(s.achievedThisYear, "traguardo quest'anno", "traguardi quest'anno"),
+            if (s.achieved > s.achievedThisYear) "${s.achieved} in totale" else "continua così",
+        ),
+        Triple(
+            s.avgDays?.let { "$it" } ?: "—", if (s.avgDays == 1) "giorno in media" else "giorni in media",
+            "dall'idea al traguardo",
+        ),
+        Triple(
+            s.topArea?.label ?: "—", "area più forte",
+            if (s.achieved > 0) "${s.onTime} su ${s.achieved} senza rinvii" else "si vedrà presto",
+        ),
     )
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         tiles.chunked(2).forEach { row ->
