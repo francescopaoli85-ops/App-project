@@ -96,6 +96,7 @@ fun StarField(seed: Int, count: Int, modifier: Modifier = Modifier) {
     }
     val t by rememberClock()
     val parallax = LocalParallax.current
+    val ocean = com.francescopaoli.northstar.ui.theme.Neon.Style == com.francescopaoli.northstar.ui.theme.SkyStyle.OCEAN
     Canvas(modifier.fillMaxSize()) {
         val p = parallax.value
         stars.forEach { s ->
@@ -110,7 +111,8 @@ fun StarField(seed: Int, count: Int, modifier: Modifier = Modifier) {
             )
             drawCircle(s.color.copy(alpha = alpha), s.r.dp.toPx(), c)
         }
-        shootingStar(t, seed)
+        // sott'acqua niente stelle cadenti
+        if (ocean.not()) shootingStar(t, seed)
     }
 }
 

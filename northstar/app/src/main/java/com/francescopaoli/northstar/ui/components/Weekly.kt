@@ -76,12 +76,12 @@ fun WeeklyStepRow(
         }
         Column(Modifier.weight(1f)) {
             Text(
-                step ?: "Scegli un piccolo passo",
+                step ?: "Aggiungi la prossima azione",
                 color = when { done -> Neon.Text3; step == null -> Neon.Lilac; else -> Neon.Text },
                 fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 textDecoration = if (done) TextDecoration.LineThrough else null,
             )
-            Text(goalTitle, color = Neon.Text3, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("per: $goalTitle", color = Neon.Text3, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

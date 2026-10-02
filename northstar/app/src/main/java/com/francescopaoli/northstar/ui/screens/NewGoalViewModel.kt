@@ -19,6 +19,10 @@ class NewGoalViewModel(app: Application) : AndroidViewModel(app) {
 
     val voice = VoiceGuide(app)
 
+    /** true = schermata di preparazione (area, modo di rispondere, musica e voce) prima della prima domanda. */
+    var preparing by mutableStateOf(true)
+        private set
+
     /** 0..5 = i 6 criteri, 6 = anteprima della frase finale. */
     var step by mutableIntStateOf(0)
         private set
@@ -56,11 +60,19 @@ class NewGoalViewModel(app: Application) : AndroidViewModel(app) {
         else -> answers[c].orEmpty().isNotBlank()
     }
 
-    /** All'ingresso di ogni domanda la voce guida la legge (e resta pronta a farsi interrompere). */
+    /** Fine della preparazione: si parte dalla prima domanda. */
+    fun start() { preparing = false }
+
+    /**
+     * All'ingresso di ogni domanda la voce guida la legge:
+     * a voce poi ascolta (e si fa interrompere), scrivendo la legge e basta.
+     */
     fun enterStep() {
+        if (preparing) return
         val c = criterion ?: return voice.silence()
-        if (typing || !voiceGuideOn) return
-        voice.speakAndListen("${c.question.replace('\n', ' ')} ${c.hint}")
+        if (!voiceGuideOn) return
+        val text = "${c.question.replace('\n', ' ')} ${c.hint}"
+        if (typing) voice.speakOnly(text) else voice.speakAndListen(text)
     }
 
     fun next() { cancelAutoNext(); voice.silence(); if (step < Criterion.entries.size) step++ }
@@ -105,10 +117,13 @@ class NewGoalViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun toggleTyping() {
+    /** Cambio di modo: a voce si riapre subito il microfono, scrivendo la voce tace. */
+    fun chooseTyping(v: Boolean) {
         cancelAutoNext()
-        typing = !typing
-        if (typing) voice.silence() else enterStep()
+        if (typing == v) return
+        typing = v
+        voice.silence()
+        if (!v && !preparing && criterion != null) voice.startListening()
     }
 
     override fun onCleared() = voice.release()

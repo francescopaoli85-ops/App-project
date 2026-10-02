@@ -62,19 +62,61 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                 Text("Impostazioni", color = Color.White, style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
 
+                // 1 · SUONI: musica ed effetti, ciascuno col suo volume
                 NeonColumnCard(Modifier.fillMaxWidth().enter(0)) {
-                    Label("Account")
-                    Text(session?.name.orEmpty(), color = Neon.Text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text(
-                        when (session) {
-                            is Session.Cloud -> session.email ?: "Account Google"
-                            else -> "Modalità locale · dati solo su questo telefono"
+                    Label("Suoni")
+                    Toggle("Musica", s.musicOn, vm::setMusicOn)
+                    if (s.musicOn) {
+                        SubLabel("Canzone di sottofondo")
+                        Segmented(
+                            com.francescopaoli.northstar.audio.AmbientSong.entries.map { it.id to it.label },
+                            s.ambientSong, vm::setAmbientSong,
+                        )
+                        VolumeSlider("Volume musica", s.musicVolume, onLive = { vm.sound.music.setVolume(it / 100f) }, onCommit = vm::setMusicVolume)
+                    }
+                    Divider()
+                    Toggle("Effetti sonori", s.sfxOn, vm::setSfxOn)
+                    if (s.sfxOn) VolumeSlider(
+                        "Volume effetti", s.sfxVolume,
+                        onLive = { vm.sound.sfx.level = it / 100f },
+                        onCommit = { vm.setSfxVolume(it); vm.sound.sfx.tap() }, // anteprima del volume scelto
+                    )
+                    Hint("Nelle domande la musica cresce a ogni risposta; si abbassa quando parla la voce guida o quando scrivi, e si ferma appena esci dall'app.")
+                }
+
+                // 2 · ASPETTO: tema e movimento dello sfondo
+                NeonColumnCard(Modifier.fillMaxWidth().enter(1)) {
+                    Label("Aspetto")
+                    ThemePicker(s.theme, vm::setTheme)
+                    val themeName = com.francescopaoli.northstar.ui.theme.Palettes.byId(s.theme).name
+                    // stato reale: col risparmio energetico lo sfondo può essere fermo anche se il tema è animato
+                    val stoppedBySaver = powerSave && !s.animateOnPowerSave
+                    SubLabel("Movimento")
+                    Toggle("Sfondo animato · $themeName", s.theme !in s.staticThemes && !stoppedBySaver) { on ->
+                        vm.setThemeAnimated(s.theme, on)
+                        if (on && stoppedBySaver) vm.setAnimateOnPowerSave(true)
+                    }
+                    Toggle("Fermalo col risparmio energetico", !s.animateOnPowerSave) { vm.setAnimateOnPowerSave(!it) }
+                    Toggle("Effetto giroscopio (inclina il telefono)", s.parallaxOn, vm::setParallax)
+                    Toggle("Effetti ridotti (risparmia batteria)", s.reducedEffects, vm::setReducedEffects)
+                    Hint(
+                        when {
+                            stoppedBySaver -> "Risparmio energetico attivo: lo sfondo è fermo. Accendi \"Sfondo animato\" per farlo ripartire."
+                            powerSave -> "Risparmio energetico attivo, ma lo sfondo resta animato come hai scelto."
+                            else -> "Sfondo fermo = immagine statica, consuma meno batteria. Vale solo per questo tema."
                         },
-                        color = Neon.Text2, fontSize = 12.sp,
                     )
                 }
 
-                NeonColumnCard(Modifier.fillMaxWidth().enter(1)) {
+                // 3 · GUIDA E PROMEMORIA
+                NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {
+                    Label("Guida e promemoria")
+                    Toggle("Voce guida (legge le domande)", s.voiceGuide, vm::setVoice)
+                    Toggle("Check-in periodici", s.checkins, vm::setCheckins)
+                    Hint("I check-in sono poche domande distanziate per tenere vivi i tuoi obiettivi: rispondi anche con un tocco dalla notifica.")
+                }
+
+                NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {
                     Label("Google Calendar")
                     if (s.calendarConnected) {
                         Text("Collegato ✦", color = Neon.Cyan, fontWeight = FontWeight.Bold)
@@ -91,68 +133,7 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                     }
                 }
 
-                NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {
-                    Label("Tema")
-                    ThemePicker(s.theme, vm::setTheme)
-                    val themeName = com.francescopaoli.northstar.ui.theme.Palettes.byId(s.theme).name
-                    // stato reale: col risparmio energetico lo sfondo può essere fermo anche se il tema è animato
-                    val stoppedBySaver = powerSave && !s.animateOnPowerSave
-                    Toggle("Sfondo animato · $themeName", s.theme !in s.staticThemes && !stoppedBySaver) { on ->
-                        vm.setThemeAnimated(s.theme, on)
-                        if (on && stoppedBySaver) vm.setAnimateOnPowerSave(true)
-                    }
-                    Toggle("Ferma gli sfondi col risparmio energetico", !s.animateOnPowerSave) { vm.setAnimateOnPowerSave(!it) }
-                    Text(
-                        when {
-                            stoppedBySaver -> "Risparmio energetico attivo: gli sfondi sono fermi. Accendi \"Sfondo animato\" per farli ripartire."
-                            powerSave -> "Risparmio energetico attivo, ma gli sfondi restano animati come hai scelto."
-                            else -> "Statico = immagine ferma, consuma meno batteria. Vale solo per questo tema."
-                        },
-                        color = Neon.Text3, fontSize = 11.sp, lineHeight = 15.sp,
-                    )
-                }
-
-                NeonColumnCard(Modifier.fillMaxWidth().enter(2)) {
-                    Label("Esperienza")
-                    Toggle("Voce guida nelle domande", s.voiceGuide, vm::setVoice)
-                    Toggle("Check-in periodici", s.checkins, vm::setCheckins)
-                    Toggle("Effetto giroscopio (inclina il telefono)", s.parallaxOn, vm::setParallax)
-                    Toggle("Effetti ridotti (risparmia batteria)", s.reducedEffects, vm::setReducedEffects)
-                }
-
-                NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {
-                    Label("Suoni")
-                    Toggle("Musica", s.musicOn, vm::setMusicOn)
-                    if (s.musicOn) {
-                        Text("Sottofondo dell'app", color = Neon.Text, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp, bottom = 8.dp))
-                        Segmented(
-                            com.francescopaoli.northstar.audio.AmbientSong.entries.map { it.id to it.label },
-                            s.ambientSong, vm::setAmbientSong,
-                        )
-                        Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("Volume musica", color = Neon.TextMid, fontSize = 13.5.sp, modifier = Modifier.weight(1f))
-                            Text("${s.musicVolume}%", color = Neon.Text2, fontSize = 12.sp)
-                        }
-                        // il valore si salva quando si lascia il cursore; intanto si sente subito
-                        var vol by androidx.compose.runtime.remember(s.musicVolume) { androidx.compose.runtime.mutableFloatStateOf(s.musicVolume.toFloat()) }
-                        androidx.compose.material3.Slider(
-                            value = vol,
-                            onValueChange = { vol = it; vm.sound.music.setVolume(it / 100f) },
-                            onValueChangeFinished = { vm.setMusicVolume(vol.toInt()) },
-                            valueRange = 0f..100f,
-                            colors = androidx.compose.material3.SliderDefaults.colors(
-                                thumbColor = Neon.Cyan, activeTrackColor = Neon.Violet, inactiveTrackColor = Neon.Track,
-                            ),
-                        )
-                    }
-                    Toggle("Effetti sonori", s.sfxOn, vm::setSfxOn)
-                    Text(
-                        "Nel percorso la musica cresce a ogni risposta. Si abbassa quando parla la voce guida e si ferma appena esci dall'app.",
-                        color = Neon.Text3, fontSize = 11.sp, lineHeight = 15.sp,
-                    )
-                }
-
-                NeonColumnCard(Modifier.fillMaxWidth().enter(3)) {
+                NeonColumnCard(Modifier.fillMaxWidth().enter(4)) {
                     Label("Pubblicità")
                     if (s.adFree) {
                         Text("Pubblicità rimossa ✦ Grazie per il supporto!", color = Neon.Cyan, fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
@@ -171,7 +152,19 @@ fun SettingsScreen(vm: MainViewModel, onTab: (Tab) -> Unit, onConnectCalendar: (
                         Modifier.fillMaxWidth(), color = Neon.Text3)
                 }
 
-                GhostButton("Esci", vm::signOut, Modifier.fillMaxWidth().enter(4))
+                // ACCOUNT in fondo, con l'uscita
+                NeonColumnCard(Modifier.fillMaxWidth().enter(5)) {
+                    Label("Account")
+                    Text(session?.name.orEmpty(), color = Neon.Text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(
+                        when (session) {
+                            is Session.Cloud -> session.email ?: "Account Google"
+                            else -> "Modalità locale · dati solo su questo telefono"
+                        },
+                        color = Neon.Text2, fontSize = 12.sp,
+                    )
+                    GhostButton("Esci", vm::signOut, Modifier.fillMaxWidth().padding(top = 12.dp))
+                }
             }
             BottomNav(Tab.IMPOSTAZIONI, onTab)
         }
@@ -194,6 +187,38 @@ private fun Toggle(label: String, on: Boolean, onChange: (Boolean) -> Unit) {
             ),
         )
     }
+}
+
+@Composable
+private fun SubLabel(t: String) =
+    Text(t, color = Neon.Text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 10.dp, bottom = 8.dp))
+
+@Composable
+private fun Hint(t: String) =
+    Text(t, color = Neon.Text3, fontSize = 11.sp, lineHeight = 15.sp, modifier = Modifier.padding(top = 6.dp))
+
+@Composable
+private fun Divider() = androidx.compose.foundation.layout.Box(
+    Modifier.fillMaxWidth().padding(vertical = 10.dp).height(1.dp).background(Neon.Track),
+)
+
+/** Cursore di volume: si sente subito mentre lo muovi, si salva quando lo lasci. */
+@Composable
+private fun VolumeSlider(label: String, value: Int, onLive: (Float) -> Unit, onCommit: (Int) -> Unit) {
+    var v by androidx.compose.runtime.remember(value) { androidx.compose.runtime.mutableFloatStateOf(value.toFloat()) }
+    Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = Neon.TextMid, fontSize = 13.5.sp, modifier = Modifier.weight(1f))
+        Text("${v.toInt()}%", color = Neon.Text2, fontSize = 12.sp)
+    }
+    androidx.compose.material3.Slider(
+        value = v,
+        onValueChange = { v = it; onLive(it) },
+        onValueChangeFinished = { onCommit(v.toInt()) },
+        valueRange = 0f..100f,
+        colors = androidx.compose.material3.SliderDefaults.colors(
+            thumbColor = Neon.Cyan, activeTrackColor = Neon.Violet, inactiveTrackColor = Neon.Track,
+        ),
+    )
 }
 
 /** Selettore a più opzioni (id, etichetta), stesso stile di [ModeSwitch]. */

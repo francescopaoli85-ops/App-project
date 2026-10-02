@@ -32,11 +32,14 @@ class Sfx(context: Context) {
     ).map { pool.load(context, it, 1) }
 
     @Volatile var enabled = true
+    /** Volume degli effetti scelto nelle impostazioni (0..1). */
+    @Volatile var level = 0.7f
     @Volatile var foreground = true
         set(v) { field = v; if (v) pool.autoResume() else pool.autoPause() }
 
     private fun play(id: Int, volume: Float = VOLUME) {
-        if (enabled && foreground) pool.play(id, volume, volume, 1, 0, 1f)
+        val v = volume * level
+        if (enabled && foreground && v > 0f) pool.play(id, v, v, 1, 0, 1f)
     }
 
     /** Tocco leggero su un bottone. */
@@ -50,7 +53,7 @@ class Sfx(context: Context) {
     /** Obiettivo creato o raggiunto. */
     fun success() = play(successId)
 
-    private companion object { const val VOLUME = 0.6f }
+    private companion object { const val VOLUME = 0.85f }
 }
 
 /** Tutti i suoni dell'app: musica adattiva + effetti, guidati dalle impostazioni. */
@@ -66,6 +69,7 @@ class SoundManager(context: Context, settings: Flow<Settings>, scope: CoroutineS
     private fun apply(s: Settings) {
         music.configure(s.musicOn, s.musicVolume / 100f, AmbientSong.byId(s.ambientSong))
         sfx.enabled = s.sfxOn
+        sfx.level = s.sfxVolume / 100f
     }
 
     /** App visibile o in secondo piano: fuori dall'app nessun suono. */

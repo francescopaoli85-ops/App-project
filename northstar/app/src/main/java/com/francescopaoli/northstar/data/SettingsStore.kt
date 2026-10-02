@@ -41,12 +41,16 @@ data class Settings(
     /** Volume musica 0..100 (basso di default: è un sottofondo). */
     val musicVolume: Int = 45,
     val sfxOn: Boolean = true,
+    /** Volume effetti sonori 0..100. */
+    val sfxVolume: Int = 70,
     /** true = sfondi animati anche col risparmio energetico attivo. */
     val animateOnPowerSave: Boolean = false,
     /** Effetto giroscopio: inclinando il telefono il cielo si sposta a strati. */
     val parallaxOn: Boolean = true,
     /** Suggerimenti al primo uso già visti (non ricompaiono). */
     val seenHints: Set<String> = emptySet(),
+    /** Ultimo modo scelto per rispondere: true = "scrivo io", false = a voce. */
+    val preferTyping: Boolean = false,
 )
 
 /** Preferenze salvate sul dispositivo (DataStore). */
@@ -69,9 +73,11 @@ class SettingsStore(private val context: Context) {
         val ambientSong = stringPreferencesKey("ambient_song")
         val musicVolume = androidx.datastore.preferences.core.intPreferencesKey("music_volume")
         val sfxOn = booleanPreferencesKey("sfx_on")
+        val sfxVolume = androidx.datastore.preferences.core.intPreferencesKey("sfx_volume")
         val animPowerSave = booleanPreferencesKey("animate_on_power_save")
         val parallax = booleanPreferencesKey("parallax_on")
         val hints = androidx.datastore.preferences.core.stringSetPreferencesKey("seen_hints")
+        val preferTyping = booleanPreferencesKey("prefer_typing")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -95,9 +101,11 @@ class SettingsStore(private val context: Context) {
         ambientSong = this[K.ambientSong] ?: "energy",
         musicVolume = this[K.musicVolume] ?: 45,
         sfxOn = this[K.sfxOn] ?: true,
+        sfxVolume = this[K.sfxVolume] ?: 70,
         animateOnPowerSave = this[K.animPowerSave] ?: false,
         parallaxOn = this[K.parallax] ?: true,
         seenHints = this[K.hints] ?: emptySet(),
+        preferTyping = this[K.preferTyping] ?: false,
     )
 
     /** Impostata dal profilo nascosto: non tocca una scelta fatta a mano. */
@@ -130,7 +138,9 @@ class SettingsStore(private val context: Context) {
     suspend fun setMusicVolume(v: Int) = context.dataStore.edit { it[K.musicVolume] = v.coerceIn(0, 100) }
     suspend fun setAnimateOnPowerSave(v: Boolean) = context.dataStore.edit { it[K.animPowerSave] = v }
     suspend fun setParallax(v: Boolean) = context.dataStore.edit { it[K.parallax] = v }
+    suspend fun setPreferTyping(v: Boolean) = context.dataStore.edit { it[K.preferTyping] = v }
     suspend fun markHintSeen(key: String) = context.dataStore.edit { it[K.hints] = (it[K.hints] ?: emptySet()) + key }
+    suspend fun setSfxVolume(v: Int) = context.dataStore.edit { it[K.sfxVolume] = v.coerceIn(0, 100) }
     suspend fun setSfxOn(v: Boolean) = context.dataStore.edit { it[K.sfxOn] = v }
     suspend fun setAdFree(v: Boolean) = context.dataStore.edit { it[K.adFree] = v }
     suspend fun setLocalName(v: String?) = context.dataStore.edit {

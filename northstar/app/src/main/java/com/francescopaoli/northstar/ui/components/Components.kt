@@ -281,9 +281,13 @@ fun RoundIconButton(icon: ImageVector, description: String, onClick: () -> Unit,
 
 enum class Tab { HOME, TRAGUARDI, IMPOSTAZIONI }
 
+/** true dentro il pager di Home/Traguardi/Impostazioni: le schermate non disegnano la propria barra. */
+val LocalTabsHosted = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 @Composable
 fun BottomNav(selected: Tab, onSelect: (Tab) -> Unit) {
-    val sound = com.francescopaoli.northstar.audio.LocalSound.current
+    // dentro il pager delle tre schermate la barra la disegna il contenitore, una sola volta
+    if (LocalTabsHosted.current) return
     Row(
         Modifier
             .fillMaxWidth()
@@ -302,7 +306,7 @@ fun BottomNav(selected: Tab, onSelect: (Tab) -> Unit) {
             Column(
                 Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable(role = Role.Tab) { if (!on) sound?.sfx?.swoosh(); onSelect(tab) }
+                    .clickable(role = Role.Tab) { onSelect(tab) } // il fruscio lo suona il pager quando la pagina cambia
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),

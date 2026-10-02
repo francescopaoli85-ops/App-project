@@ -57,6 +57,9 @@ import com.francescopaoli.northstar.data.GoalStatus
 import com.francescopaoli.northstar.domain.Checkins
 import com.francescopaoli.northstar.domain.SummaryBuilder
 import com.francescopaoli.northstar.ui.MainViewModel
+import com.francescopaoli.northstar.ui.components.icon
+import com.francescopaoli.northstar.ui.components.color
+import com.francescopaoli.northstar.ui.components.StarTrail
 import com.francescopaoli.northstar.ui.components.Chip
 import com.francescopaoli.northstar.ui.components.GhostButton
 import com.francescopaoli.northstar.ui.components.GradientButton
@@ -112,10 +115,13 @@ fun DetailScreen(
                     },
                 )
                 Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    ProgressRing(g.progress, 78.dp, 7.dp, muted = postponed, showPercent = true,
-                        glowing = true, modifier = Modifier.sharedElementOf("ring-${g.id}"))
+                    Box(
+                        Modifier.size(58.dp).clip(RoundedCornerShape(18.dp)).background(g.area.color.copy(alpha = 0.18f))
+                            .border(1.dp, g.area.color.copy(alpha = 0.45f), RoundedCornerShape(18.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) { Icon(g.area.icon, null, tint = g.area.color, modifier = Modifier.size(28.dp)) }
                     Column {
-                        Chip(g.area.label, Modifier.pop(150), filled = true)
+                        Text(g.area.label.uppercase(), color = g.area.color, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, modifier = Modifier.pop(150))
                         Text(g.title, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 23.sp,
                             modifier = Modifier.padding(top = 6.dp).sharedTextOf("title-${g.id}"))
                         Text(
@@ -157,6 +163,10 @@ fun DetailScreen(
                 TextLink("Elimina obiettivo", { confirmDelete = true }, Modifier.align(Alignment.CenterHorizontally), color = Neon.Text3)
             }
 
+            if (g.actions.isNotEmpty()) CoachBubble(
+                "detail_longpress", "Tieni premuta un'azione per modificarla o eliminarla.",
+                settings.seenHints, { vm.hintSeen(it) }, Modifier.padding(horizontal = 16.dp),
+            )
             if (g.isOpen) {
                 Row(
                     Modifier.navigationBarsPadding().padding(start = 22.dp, end = 22.dp, bottom = 16.dp, top = 8.dp),
@@ -213,24 +223,19 @@ private fun DueBanner(onYes: () -> Unit, onLater: () -> Unit) {
 private fun ActionsCard(g: Goal, vm: MainViewModel, modifier: Modifier) {
     var newAction by rememberSaveable { mutableStateOf("") }
     var editing by remember { mutableStateOf<GoalAction?>(null) }
-    val settings by vm.settings.collectAsStateWithLifecycle()
     NeonColumnCard(modifier.fillMaxWidth(), corner = 16.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            ProgressRing(g.progress, 44.dp, 5.dp, delayMs = 200)
-            Column {
-                Text("Passo dopo passo", color = Neon.Text, fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
+            Column(Modifier.weight(1f)) {
+                Text("Il tuo sentiero", color = Neon.Text, fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
                 Text(
                     if (g.actions.isEmpty()) "Aggiungi le azioni che ti portano alla meta"
-                    else "${g.actions.count { it.done }} azioni fatte su ${g.actions.size} verso la scadenza",
+                    else "${g.actions.count { it.done }} azioni fatte su ${g.actions.size}: ogni azione è una tappa verso la stella",
                     color = Neon.Text2, fontSize = 11.5.sp,
                 )
+                StarTrail(g.actions.count { it.done }, g.actions.size, Modifier.padding(top = 10.dp), height = 24.dp)
             }
         }
         Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (g.actions.isNotEmpty()) HintBubble(
-                "detail_longpress", "Tieni premuta un'azione per modificarla o eliminarla.",
-                settings.seenHints, { vm.hintSeen(it) },
-            )
             g.actions.forEachIndexed { i, a ->
                 ActionRow(a, Modifier.enter(i, 60), { vm.toggleAction(g.id, a.id) }, { editing = a }, { vm.removeAction(g.id, a.id) })
             }

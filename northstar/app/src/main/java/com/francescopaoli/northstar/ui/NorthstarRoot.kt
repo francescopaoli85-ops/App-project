@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import kotlinx.coroutines.launch
 import com.francescopaoli.northstar.AppContainer
 import com.francescopaoli.northstar.ui.components.Tab
 import com.francescopaoli.northstar.ui.fx.NeonBackdrop
@@ -140,19 +142,13 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
             popExitTransition = { fadeOut(tween(250)) },
         ) {
             composable(Routes.LOGIN) { LoginScreen(vm) }
-            composable(Routes.HOME) {
-              CompositionLocalProvider(LocalNavAnimScope provides this) {
-                HomeScreen(
-                    vm,
-                    onNew = { nav.navigate(Routes.NEW) },
-                    onOpen = { nav.navigate(Routes.detail(it)) },
-                    onCalendar = { nav.navigate(Routes.CALENDAR) },
-                    onTab = { nav.goTab(it) },
-                    onWeek = { nav.navigate(Routes.WEEK) },
-                    onPolaris = { nav.navigate(Routes.POLARIS) },
-                    onCheckin = { nav.navigate(Routes.checkin(it)) },
-                )
-              }
+            // Home, Traguardi e Impostazioni: tre pagine che si sfogliano col dito
+            listOf(Routes.HOME to Tab.HOME, Routes.ACHIEVEMENTS to Tab.TRAGUARDI, Routes.SETTINGS to Tab.IMPOSTAZIONI).forEach { (route, tab) ->
+                composable(route) {
+                  CompositionLocalProvider(LocalNavAnimScope provides this) {
+                    TabsHost(vm, tab, nav)
+                  }
+                }
             }
             composable(Routes.NEW) {
                 NewGoalScreen(
@@ -194,7 +190,6 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
                     onUndo = { vm.undoAchieve(id); nav.navigate(Routes.detail(id)) { popUpTo(Routes.HOME) } },
                 )
             }
-            composable(Routes.ACHIEVEMENTS) { AchievementsScreen(vm, onTab = { nav.goTab(it) }) }
             composable(Routes.CALENDAR) {
                 CalendarConnectScreen(vm, onDone = { if (!nav.popBackStack(Routes.HOME, false)) nav.navigate(Routes.HOME) })
             }
@@ -208,9 +203,6 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
             }
             composable(Routes.WEEK) {
                 WeekSummaryScreen(vm, onClose = { if (!nav.popBackStack(Routes.HOME, false)) nav.navigate(Routes.HOME) })
-            }
-            composable(Routes.SETTINGS) {
-                SettingsScreen(vm, onTab = { nav.goTab(it) }, onConnectCalendar = { nav.navigate(Routes.CALENDAR) })
             }
         }
 
@@ -235,16 +227,41 @@ private fun RootContent(vm: MainViewModel, deepLink: String?, onDeepLinkHandled:
     }
 }
 
-/** Cambio di tab dalla barra in basso, senza accumulare schermate. */
-private fun NavHostController.goTab(tab: Tab) {
-    val route = when (tab) {
-        Tab.HOME -> Routes.HOME
-        Tab.TRAGUARDI -> Routes.ACHIEVEMENTS
-        Tab.IMPOSTAZIONI -> Routes.SETTINGS
+/**
+ * Le tre schermate principali in un pager orizzontale: si passa dall'una all'altra
+ * scorrendo col dito o toccando la barra in basso (che segue lo scorrimento).
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun TabsHost(vm: MainViewModel, initial: Tab, nav: NavHostController) {
+    val pager = androidx.compose.foundation.pager.rememberPagerState(initialPage = initial.ordinal) { Tab.entries.size }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val sound = com.francescopaoli.northstar.audio.LocalSound.current
+    // fruscio quando la pagina cambia davvero
+    var lastPage by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(initial.ordinal) }
+    LaunchedEffect(pager.settledPage) {
+        if (pager.settledPage != lastPage) { sound?.sfx?.swoosh(); lastPage = pager.settledPage }
     }
-    navigate(route) {
-        popUpTo(Routes.HOME) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
+    val goTo: (Tab) -> Unit = { t -> scope.launch { pager.animateScrollToPage(t.ordinal) } }
+    androidx.compose.foundation.layout.Column(Modifier.fillMaxSize()) {
+        CompositionLocalProvider(com.francescopaoli.northstar.ui.components.LocalTabsHosted provides true) {
+            androidx.compose.foundation.pager.HorizontalPager(pager, Modifier.weight(1f)) { page ->
+                when (Tab.entries[page]) {
+                    Tab.HOME -> HomeScreen(
+                        vm,
+                        onNew = { nav.navigate(Routes.NEW) },
+                        onOpen = { nav.navigate(Routes.detail(it)) },
+                        onCalendar = { nav.navigate(Routes.CALENDAR) },
+                        onTab = goTo,
+                        onWeek = { nav.navigate(Routes.WEEK) },
+                        onPolaris = { nav.navigate(Routes.POLARIS) },
+                        onCheckin = { nav.navigate(Routes.checkin(it)) },
+                    )
+                    Tab.TRAGUARDI -> AchievementsScreen(vm, onTab = goTo)
+                    Tab.IMPOSTAZIONI -> SettingsScreen(vm, onTab = goTo, onConnectCalendar = { nav.navigate(Routes.CALENDAR) })
+                }
+            }
+        }
+        com.francescopaoli.northstar.ui.components.BottomNav(Tab.entries[pager.targetPage], goTo)
     }
 }

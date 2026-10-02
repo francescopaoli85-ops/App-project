@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +55,42 @@ fun HintBubble(key: String, text: String, seen: Set<String>, onSeen: (String) ->
         }
     }
 }
+
+/**
+ * Suggerimento fluttuante: una nuvoletta sopra il contenuto (non in mezzo alla lista),
+ * con ombra e bordo luminoso; sparisce con "Ho capito" e non torna più.
+ */
+@Composable
+fun CoachBubble(key: String, text: String, seen: Set<String>, onSeen: (String) -> Unit, modifier: Modifier = Modifier) {
+    AnimatedVisibility(
+        key !in seen, modifier,
+        enter = fadeIn() + androidx.compose.animation.slideInVertically { it / 2 },
+        exit = fadeOut() + androidx.compose.animation.slideOutVertically { it / 2 },
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .androidxShadow()
+                .clip(RoundedCornerShape(18.dp))
+                .background(Neon.SurfaceHi)
+                .border(1.dp, Neon.Cyan.copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("💡", fontSize = 18.sp)
+            Text(text, color = Neon.Text, fontSize = 13.sp, lineHeight = 18.sp, modifier = Modifier.weight(1f))
+            Text(
+                "Ho capito", color = Neon.Cyan, fontSize = 12.5.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable { onSeen(key) }.padding(8.dp),
+            )
+        }
+    }
+}
+
+private fun Modifier.androidxShadow() = this.then(
+    Modifier.shadow(16.dp, RoundedCornerShape(18.dp), ambientColor = Neon.Cyan, spotColor = Neon.Violet),
+)
 
 /** Finestra rapida per scrivere un testo (nuovo passo, modifica azione) senza cambiare schermata. */
 @Composable

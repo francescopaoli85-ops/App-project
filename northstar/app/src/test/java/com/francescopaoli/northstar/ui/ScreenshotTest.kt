@@ -31,6 +31,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import androidx.compose.foundation.layout.padding
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
@@ -155,5 +156,23 @@ class ScreenshotTest {
         try { shot("statico_${p.id}", animated = false) { com.francescopaoli.northstar.ui.screens.PolarisScreen(vm, {}, {}, {}) } }
         finally { com.francescopaoli.northstar.ui.theme.Neon.palette = com.francescopaoli.northstar.ui.theme.Palettes.NotteNeon }
     }
+    /** Pezzi del percorso: costellazione dei passi, selettore voce/scrittura, sentiero dell'avanzamento. */
+    @Test fun flowParts() = shot("23_percorso_pezzi") {
+        com.francescopaoli.northstar.ui.fx.NeonBackdrop {
+            androidx.compose.foundation.layout.Column(
+                androidx.compose.ui.Modifier.padding(24.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp),
+            ) {
+                com.francescopaoli.northstar.ui.screens.ConstellationProgress(2)
+                com.francescopaoli.northstar.ui.screens.ConstellationProgress(6)
+                com.francescopaoli.northstar.ui.screens.AnswerModeSwitch(false, true, {})
+                com.francescopaoli.northstar.ui.screens.AnswerModeSwitch(true, true, {})
+                com.francescopaoli.northstar.ui.components.StarTrail(3, 7)
+                com.francescopaoli.northstar.ui.components.StarTrail(7, 7)
+                com.francescopaoli.northstar.ui.components.StarTrail(0, 0)
+            }
+        }
+    }
+
     @Test fun celebrationLater() = shot("13_celebrazione_fuochi", atMs = 3_200) { CelebrationScreen(vm, "books", {}, {}) }
 }

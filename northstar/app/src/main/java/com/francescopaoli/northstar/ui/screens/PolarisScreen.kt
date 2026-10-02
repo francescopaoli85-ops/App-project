@@ -21,6 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import com.francescopaoli.northstar.ui.components.icon
+import com.francescopaoli.northstar.ui.components.color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
@@ -106,13 +109,20 @@ private fun PolarCard(g: Goal, modifier: Modifier, onOpen: () -> Unit) {
     val days = g.daysLeft()
     NeonColumnCard(modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            ProgressRing(g.progress, 60.dp, 6.dp, showPercent = true, labelSize = 13.sp, glowing = true)
+            androidx.compose.foundation.layout.Box(
+                Modifier.size(52.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                    .background(g.area.color.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center,
+            ) { Icon(g.area.icon, null, tint = g.area.color, modifier = Modifier.size(26.dp)) }
             Column(Modifier.weight(1f)) {
-                Chip(g.area.label, Modifier.pop(200), filled = true)
+                Text(g.area.label.uppercase(), color = g.area.color, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, modifier = Modifier.pop(200))
                 Text(g.title, color = Neon.Text, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 22.sp,
                     modifier = Modifier.padding(top = 6.dp))
             }
         }
+        com.francescopaoli.northstar.ui.components.StarTrail(
+            g.actions.count { it.done }, g.actions.size, Modifier.padding(top = 14.dp), height = 26.dp,
+        )
         Text(g.summary, color = Neon.TextSoft, fontSize = 13.5.sp, lineHeight = 21.sp, fontStyle = FontStyle.Italic,
             modifier = Modifier.padding(top = 14.dp))
         Row(Modifier.padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(18.dp)) {

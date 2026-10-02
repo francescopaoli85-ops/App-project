@@ -66,6 +66,8 @@ class MusicEngine(private val context: Context) {
     @Volatile private var voiceDuck = 1f
     /** Il riconoscimento vocale ha preso il focus audio: la musica si abbassa, non si ferma. */
     @Volatile private var focusDuck = false
+    /** Mentre scrivi la musica si abbassa: è un momento di concentrazione. */
+    @Volatile private var typingDuck = false
     /** Siamo nel percorso guidato (dove voce e microfono prendono il focus audio). */
     @Volatile private var inFlow = false
 
@@ -91,6 +93,8 @@ class MusicEngine(private val context: Context) {
     fun setSong(s: AmbientSong) = post { if (song != s) { song = s; retarget(musical = true) } }
 
     /** Voce guida: mentre parla la musica scende al 10%, mentre ascolta al 25%. */
+    fun setTyping(v: Boolean) { typingDuck = v }
+
     fun setVoice(speaking: Boolean, listening: Boolean) {
         voiceDuck = when {
             speaking -> MusicPlan.VOICE_DUCK
@@ -260,7 +264,7 @@ class MusicEngine(private val context: Context) {
 
             // volumi: dissolvenze per blocco, interpolate dentro il blocco
             val masterTo = volume * MASTER
-            val duckTo = min(voiceDuck, if (focusDuck) MusicPlan.LISTEN_DUCK else 1f)
+            val duckTo = minOf(voiceDuck, if (focusDuck) MusicPlan.LISTEN_DUCK else 1f, if (typingDuck) MusicPlan.TYPING_DUCK else 1f)
             val m0 = masterGain * duckGain
             masterGain = MusicPlan.approach(masterGain, masterTo, n, 0.6f)
             // giù veloce quando parte la voce, su morbido quando finisce

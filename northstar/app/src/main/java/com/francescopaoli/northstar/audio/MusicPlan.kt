@@ -50,6 +50,8 @@ object MusicPlan {
     const val VOICE_DUCK = 0.10f
     /** Volume della musica mentre il microfono ascolta: si sente, ma non disturba il riconoscimento. */
     const val LISTEN_DUCK = 0.25f
+    /** Volume della musica mentre scrivi: presente ma discreta, per restare concentrati. */
+    const val TYPING_DUCK = 0.30f
 
     fun flowAsset(stem: String) = "music/flow_$stem.webm"
 

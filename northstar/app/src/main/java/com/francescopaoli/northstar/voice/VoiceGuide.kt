@@ -65,7 +65,7 @@ class VoiceGuide(private val context: Context) {
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build(),
             )
-            pendingSpeech?.let { main.post { speakAndListen(it) } }
+            pendingSpeech?.let { t -> main.post { speak(t, listenAfter) } }
             pendingSpeech = null
         }
     }
@@ -80,6 +80,8 @@ class VoiceGuide(private val context: Context) {
     /** true se l'ascolto in corso è partito da un'interruzione. */
     private var listeningAfterBargeIn = false
     private var commMode = false
+    /** false = legge la domanda e basta (modalità "scrivo io"): niente microfono dopo. */
+    private var listenAfter = true
     /** true con l'app in secondo piano: niente voce e niente ascolto finché non si rientra. */
     @Volatile private var paused = false
 
@@ -94,7 +96,8 @@ class VoiceGuide(private val context: Context) {
                 main.post {
                     bargeIn.stop()
                     _state.update { it.copy(speaking = false) }
-                    if (!paused) startListening() // finita la domanda, ascolto
+                    if (!paused && listenAfter) startListening() // finita la domanda, ascolto
+                    if (!listenAfter) leaveSpeakerphone()
                 }
             }
             @Deprecated("Deprecated in Java")
@@ -115,12 +118,19 @@ class VoiceGuide(private val context: Context) {
     fun setOnResult(block: (String) -> Unit) { onFinalText = block }
 
     /** Legge la domanda; nel frattempo resta in ascolto per l'interruzione. */
-    fun speakAndListen(text: String) {
+    fun speakAndListen(text: String) = speak(text, listen = true)
+
+    /** Legge la domanda senza poi aprire il microfono (per chi risponde scrivendo). */
+    fun speakOnly(text: String) = speak(text, listen = false)
+
+    private fun speak(text: String, listen: Boolean) {
         if (paused) return
         stopListening()
+        listenAfter = listen
         lastQuestion = text
         if (!ttsReady) { pendingSpeech = text; return }
-        enterSpeakerphone()
+        // senza microfono non serve la modalità chiamata (anti-eco): audio normale
+        if (listen) enterSpeakerphone()
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "q-${System.nanoTime()}")
     }
 

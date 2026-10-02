@@ -60,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -103,28 +104,47 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
     // salvataggio in corso + "salto nell'iperspazio" (si naviga quando finiscono entrambi)
     var warp by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     var firstGoal by remember { mutableStateOf(false) }
+    fun hasMic() = ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
-    // microfono: se negato o non disponibile si passa al testo
+    // microfono: se negato si passa alla modalità manuale
     val micPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (!ok) ng.typing = true else ng.enterStep()
+        if (!ok) { ng.chooseTyping(true); vm.setPreferTyping(true) }
+        ng.start()
     }
+    // le scelte dell'ultima volta (modo di rispondere, voce guida)
     LaunchedEffect(Unit) {
         ng.voiceGuideOn = settings.voiceGuide
-        if (!voiceState.available) ng.typing = true
-        else if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-            micPerm.launch(Manifest.permission.RECORD_AUDIO)
+        ng.chooseTyping(settings.preferTyping || !voiceState.available)
     }
-    // ogni nuova domanda: la voce guida la legge (se il microfono è già autorizzato)
-    LaunchedEffect(ng.step) {
-        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) ng.enterStep()
+    // ogni nuova domanda: la voce guida la legge (a voce serve il microfono autorizzato)
+    LaunchedEffect(ng.step, ng.preparing) {
+        if (!ng.preparing && (ng.typing || hasMic())) ng.enterStep()
     }
-    DisposableEffect(Unit) { onDispose { ng.voice.silence(); vm.sound.music.setVoice(false, false) } }
-    // musica a strati: ogni passo aggiunge strumenti, il riepilogo è l'apoteosi (livello 7)
-    LaunchedEffect(ng.step) { vm.sound.music.setScene(com.francescopaoli.northstar.audio.Scene.Flow(ng.step + 1)) }
-    // nota d'arpa a ogni passo avanti (col bottone o in automatico)
+    DisposableEffect(Unit) {
+        onDispose { ng.voice.silence(); vm.sound.music.setVoice(false, false); vm.sound.music.setTyping(false) }
+    }
+    // musica: in preparazione resta il sottofondo; poi ogni passo aggiunge strumenti fino all'apoteosi (7)
+    LaunchedEffect(ng.step, ng.preparing) {
+        vm.sound.music.setScene(
+            if (ng.preparing) com.francescopaoli.northstar.audio.Scene.Ambient
+            else com.francescopaoli.northstar.audio.Scene.Flow(ng.step + 1),
+        )
+    }
+    // mentre scrivi la musica si abbassa: concentrazione
+    LaunchedEffect(ng.typing, ng.preparing) { vm.sound.music.setTyping(ng.typing && !ng.preparing) }
+    // a ogni passo: nota d'arpa che sale; al riepilogo l'arpeggio della vittoria e la festa
     var lastStep by remember { mutableStateOf(ng.step) }
+    var celebrate by remember { mutableStateOf(false) }
     LaunchedEffect(ng.step) {
-        if (ng.step > lastStep) vm.sound.sfx.step(ng.step)
+        if (ng.step > lastStep) {
+            if (ng.isSummary) {
+                vm.sound.sfx.step(6)
+                celebrate = true
+                kotlinx.coroutines.delay(350)
+                vm.sound.sfx.success()
+            } else vm.sound.sfx.step(ng.step)
+        }
+        if (!ng.isSummary) celebrate = false
         lastStep = ng.step
     }
     // quando la guida parla o ascolta, la musica si abbassa
@@ -136,6 +156,11 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
         ng.voice.resume()
         onStopOrDispose { ng.voice.pause() }
     }
+    val setTyping: (Boolean) -> Unit = { t ->
+        vm.setPreferTyping(t)
+        if (!t && !hasMic()) micPerm.launch(Manifest.permission.RECORD_AUDIO).also { ng.chooseTyping(false) }
+        else ng.chooseTyping(t)
+    }
 
     NeonBackdrop(particles = 6, seed = 9) {
         Column(Modifier.fillMaxSize().imePadding()) {
@@ -144,70 +169,89 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                     start = { RoundIconButton(NsIcons.Close, "Chiudi", onClose) },
                     end = {
                         Text(
-                            if (ng.isSummary) "ECCOLO" else "PASSO ${ng.step + 1} / 6",
+                            when {
+                                ng.preparing -> "PREPARAZIONE"
+                                ng.isSummary -> "ECCOLO ✦"
+                                else -> "PASSO ${ng.step + 1} DI 6"
+                            },
                             color = Neon.Text2, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                         )
                     },
                 )
-                StepDots(ng.step)
-                // interruttori rapidi: musica e voce guida, senza passare dalle impostazioni
-                Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    QuickToggle("♪  Musica", settings.musicOn) { vm.setMusicOn(it) }
-                    QuickToggle("Voce guida", settings.voiceGuide) { on ->
-                        vm.setVoice(on)
-                        ng.voiceGuideOn = on
-                        if (on) ng.enterStep() else ng.voice.silence()
-                    }
-                }
-            }
-
-            AnimatedContent(
-                targetState = ng.step,
-                transitionSpec = {
-                    val dir = if (targetState > initialState) 1 else -1
-                    (slideInHorizontally(tween(420)) { it / 4 * dir } + fadeIn(tween(420)))
-                        .togetherWith(slideOutHorizontally(tween(300)) { -it / 4 * dir } + fadeOut(tween(250)))
-                },
-                modifier = Modifier.weight(1f),
-                label = "step",
-            ) { step ->
-                val c = Criterion.entries.getOrNull(step)
-                Column(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 26.dp, vertical = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    if (c == null) SummaryStep(ng)
-                    else {
-                        QuestionHeader(c)
-                        if (c == Criterion.POSITIVO) AreaPicker(ng.area) { ng.area = it }
-                        PreviousAnswer(ng, step)
-                        if (c == Criterion.CONTESTUALIZZATO) DateCard(ng) { pickDate = true }
-                        if (ng.typing) {
-                            NeonTextField(
-                                ng.answers[c].orEmpty(), ng::setAnswer,
-                                if (c == Criterion.CONTESTUALIZZATO) "Dove, con chi… (facoltativo)" else "Scrivi qui la tua risposta",
-                                minLines = 3, modifier = Modifier.enter(2),
-                            )
-                        } else {
-                            VoiceInput(
-                                answer = ng.answers[c].orEmpty(),
-                                speaking = voiceState.speaking,
-                                listening = voiceState.listening,
-                                partial = voiceState.partial,
-                                level = voiceState.level,
-                                onMic = ng::micTap,
-                            )
+                if (!ng.preparing) {
+                    // costellazione: ogni risposta accende una stella, il riepilogo la Stella Polare
+                    ConstellationProgress(ng.step, Modifier.padding(top = 10.dp))
+                    if (!ng.isSummary) AnswerModeSwitch(ng.typing, voiceState.available, setTyping, Modifier.padding(top = 10.dp))
+                    // interruttori rapidi: musica e voce guida, senza passare dalle impostazioni
+                    Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        QuickToggle("♪  Musica", settings.musicOn) { vm.setMusicOn(it) }
+                        QuickToggle("🗣  Voce guida", settings.voiceGuide) { on ->
+                            vm.setVoice(on)
+                            ng.voiceGuideOn = on
+                            if (on) ng.enterStep() else ng.voice.silence()
                         }
                     }
                 }
             }
 
-            // barra in basso: passa a testo/voce, indietro, avanti
-            Column(Modifier.navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 16.dp)) {
-                if (!ng.isSummary && !ng.typing) HintBubble(
+            Box(Modifier.weight(1f)) {
+                if (ng.preparing) {
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 20.dp)) {
+                        PrepStep(
+                            area = ng.area, onArea = { ng.area = it },
+                            typing = ng.typing, voiceAvailable = voiceState.available, onTyping = { t -> vm.setPreferTyping(t); ng.chooseTyping(t) },
+                            musicOn = settings.musicOn, onMusic = vm::setMusicOn,
+                            voiceGuide = settings.voiceGuide, onVoiceGuide = { vm.setVoice(it); ng.voiceGuideOn = it },
+                        )
+                    }
+                } else AnimatedContent(
+                    targetState = ng.step,
+                    transitionSpec = {
+                        val dir = if (targetState > initialState) 1 else -1
+                        (slideInHorizontally(tween(420)) { it / 4 * dir } + fadeIn(tween(420)))
+                            .togetherWith(slideOutHorizontally(tween(300)) { -it / 4 * dir } + fadeOut(tween(250)))
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    label = "step",
+                ) { step ->
+                    val c = Criterion.entries.getOrNull(step)
+                    Column(
+                        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 26.dp, vertical = 22.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        if (c == null) SummaryStep(ng)
+                        else {
+                            QuestionHeader(c)
+                            PreviousAnswer(ng, step)
+                            if (c == Criterion.CONTESTUALIZZATO) DateCard(ng) { pickDate = true }
+                            if (ng.typing) {
+                                NeonTextField(
+                                    ng.answers[c].orEmpty(), ng::setAnswer,
+                                    if (c == Criterion.CONTESTUALIZZATO) "Dove, con chi… (facoltativo)" else "Scrivi qui la tua risposta",
+                                    minLines = 3, modifier = Modifier.enter(2),
+                                )
+                            } else {
+                                VoiceInput(
+                                    answer = ng.answers[c].orEmpty(),
+                                    speaking = voiceState.speaking,
+                                    listening = voiceState.listening,
+                                    partial = voiceState.partial,
+                                    level = voiceState.level,
+                                    onMic = ng::micTap,
+                                )
+                            }
+                        }
+                    }
+                }
+                // suggerimento fluttuante (una volta sola), sopra il contenuto
+                if (!ng.preparing && !ng.isSummary && !ng.typing) CoachBubble(
                     "flow_auto", "Rispondi a voce: dopo 3 secondi passo da solo alla domanda dopo.",
-                    settings.seenHints, { vm.hintSeen(it) }, Modifier.padding(bottom = 8.dp),
+                    settings.seenHints, { vm.hintSeen(it) }, Modifier.align(Alignment.BottomCenter).padding(16.dp),
                 )
+            }
+
+            // barra in basso: indietro / avanti (o "Iniziamo" in preparazione)
+            Column(Modifier.navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 16.dp, top = 6.dp)) {
                 // conto alla rovescia dell'avanti automatico, annullabile
                 androidx.compose.animation.AnimatedVisibility(ng.autoNextIn > 0) {
                     Row(
@@ -218,13 +262,15 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                         TextLink("Annulla", ng::cancelAutoNext, color = Neon.Text2)
                     }
                 }
-                if (!ng.isSummary && voiceState.available) {
-                    TextLink(
-                        if (ng.typing) "Parla invece" else "Scrivi invece", ng::toggleTyping,
-                        Modifier.align(Alignment.CenterHorizontally), color = Neon.Text3,
+                if (ng.preparing) {
+                    GradientButton(
+                        "Iniziamo ✦",
+                        {
+                            if (!ng.typing && !hasMic()) micPerm.launch(Manifest.permission.RECORD_AUDIO) else ng.start()
+                        },
+                        Modifier.fillMaxWidth(), trailing = NsIcons.Arrow,
                     )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                } else Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (ng.step > 0) GhostButton("Indietro", ng::back, Modifier.weight(1f))
                     GradientButton(
                         text = when {
@@ -248,6 +294,13 @@ fun NewGoalScreen(vm: MainViewModel, onClose: () -> Unit, onCreated: (firstGoal:
                     )
                 }
             }
+        }
+        // lampo di luce a ogni passo avanti
+        StepFlash(if (ng.preparing) -1 else ng.step, Modifier.fillMaxSize())
+        // il riepilogo è una festa: la stessa del tema, sopra a tutto
+        if (celebrate) {
+            if (fullFx) com.francescopaoli.northstar.ui.fx.ThemeCelebration()
+            else com.francescopaoli.northstar.ui.fx.ConfettiRain(Modifier.fillMaxSize())
         }
         warp?.let { job ->
             WarpOverlay(onFinished = { scope.launch { job.join(); onCreated(firstGoal) } })
@@ -273,20 +326,6 @@ private fun QuickToggle(label: String, on: Boolean, onChange: (Boolean) -> Unit)
     )
 }
 
-/** 6 trattini di avanzamento: quelli completati "scattano" con un pop. */
-@Composable
-private fun StepDots(step: Int) {
-    Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        repeat(6) { i ->
-            val done = i <= step
-            Box(
-                Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(2.dp))
-                    .then(if (done) Modifier.pop(i * 60L).background(Brush.horizontalGradient(Neon.gradient2)) else Modifier.background(Neon.Track)),
-            )
-        }
-    }
-}
-
 @Composable
 private fun QuestionHeader(c: Criterion) {
     Column {
@@ -294,26 +333,6 @@ private fun QuestionHeader(c: Criterion) {
         Text(c.question, color = Color.White, style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(top = 15.dp).enter(0))
         Text(c.hint, color = Neon.Text2, fontSize = 13.sp, lineHeight = 20.sp, modifier = Modifier.padding(top = 8.dp).enter(1))
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun AreaPicker(selected: Area, onPick: (Area) -> Unit) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Area.entries.forEachIndexed { i, a ->
-            val on = a == selected
-            Text(
-                a.label, color = if (on) Color.White else Neon.Text2, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .pop(i * 60L)
-                    .clip(RoundedCornerShape(20.dp))
-                    .then(if (on) Modifier.animatedGradient(20.dp) else Modifier.background(Neon.Surface))
-                    .border(1.dp, if (on) Color.Transparent else Neon.Violet.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
-                    .clickable(role = Role.RadioButton) { onPick(a) }
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-            )
-        }
     }
 }
 
@@ -394,20 +413,35 @@ private fun VoiceInput(
     }
 }
 
-/** Ultimo passo: la frase riassuntiva composta in automatico. */
+/**
+ * Ultimo passo: la frase riassuntiva. È il momento della ricompensa:
+ * la Stella Polare si accende con i raggi, la frase compare parola per parola, la musica è all'apoteosi.
+ */
 @Composable
 private fun SummaryStep(ng: NewGoalViewModel) {
     val summary = SummaryBuilder.build(ng.answers.toMap(), ng.deadline)
+    val words = remember(summary) { summary.split(" ") }
+    var shown by remember(summary) { mutableStateOf(0) }
+    LaunchedEffect(summary) {
+        kotlinx.coroutines.delay(600)
+        while (shown < words.size) { shown++; kotlinx.coroutines.delay(70) }
+    }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-        GradientIconTile(NsIcons.Star, 70.dp, 22.dp, 30.dp, Modifier.pop(0, -20f))
-        Text("Ecco il tuo obiettivo", color = Color.White, style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(top = 20.dp).enter(1))
-        Text(ng.area.label, color = Neon.Text2, fontSize = 12.sp, modifier = Modifier.enter(2))
+        Box(contentAlignment = Alignment.Center) {
+            com.francescopaoli.northstar.ui.fx.StarRays(Modifier.size(170.dp), alpha = 0.7f)
+            GradientIconTile(NsIcons.Star, 76.dp, 24.dp, 34.dp, Modifier.pop(0, -20f).glow(24.dp, blur = 22.dp, durationMs = 1600))
+        }
+        Text("Ecco la tua Stella Polare", color = Color.White, style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.enter(1))
+        Text("Da un desiderio a una meta vera: ce l'hai fatta, era il passo più difficile.", color = Neon.Text2, fontSize = 13.sp,
+            textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp).enter(2))
     }
     NeonColumnCard(Modifier.fillMaxWidth().enter(3, stepMs = 120).glow(18.dp, blur = 16.dp, durationMs = 2400)) {
         Icon(NsIcons.Quote, null, tint = Neon.Cyan.copy(alpha = 0.7f), modifier = Modifier.size(26.dp, 20.dp))
-        Text(summary, color = Neon.TextSoft, fontSize = 15.sp, lineHeight = 24.sp, fontStyle = FontStyle.Italic,
+        // la frase si scrive davanti ai tuoi occhi
+        Text(words.take(shown).joinToString(" "), color = Neon.TextSoft, fontSize = 16.sp, lineHeight = 25.sp, fontStyle = FontStyle.Italic,
             modifier = Modifier.padding(top = 8.dp))
     }
-    Text("Le 6 risposte restano consultabili nel dettaglio.", color = Neon.Text3, fontSize = 12.sp, modifier = Modifier.enter(4))
+    Text("${ng.area.label} · le 6 risposte restano nel dettaglio dell'obiettivo.", color = Neon.Text3, fontSize = 12.sp, modifier = Modifier.enter(4))
 }
+
