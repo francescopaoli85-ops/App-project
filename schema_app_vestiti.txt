@@ -1,0 +1,88 @@
+SCHEMA PROGETTO: App Android per gestione foto negozio usato bambini
+
+CONTESTO
+Negozio di usato per bambini. L'utente (Elisa) fotografa capi e scarpe con uno
+smartphone Android (OnePlus). Ogni articolo ha un cartellino stampato da stampante
+Zebra GK420t (etichetta 72x36mm). Elisa usa SOLO il telefono (niente PC per questo
+lavoro) e non e' molto esperta di smartphone: serve una soluzione semplicissima e fluida.
+
+OBIETTIVO
+App o mini web-app per Android che, a partire dalle foto, faccia:
+1. RADDRIZZAMENTO automatico delle foto (spesso risultano ruotate di 90 gradi)
+2. OCR sul cartellino presente nella foto per estrarre: descrizione (dato PIU'
+   IMPORTANTE), codice articolo, prezzo, taglia
+3. Generazione di un testo pronto per ogni foto (codice + descrizione + prezzo) da
+   usare come didascalia dello stato WhatsApp (ed eventualmente Facebook)
+
+STRUTTURA DEL CARTELLINO (esempi reali)
+Ogni etichetta contiene, dall'alto in basso: codice a barre, riga con "A2954/..."
+e sotto il codice articolo di 7 cifre, descrizione abbreviata, prezzo in euro (grande,
+in basso a sinistra), taglia (in basso a destra).
+
+Esempi letti dalle foto:
+- Codice 1444496 | FELPA ZIP CAPP OKAIDI/ 8A MARGH FELP 8A RS | 4,00 EUR | taglia 8A
+- Codice 1444493 | COPRISPALLA 7A BOTT IDO 7A PANNA NO | 2,50 EUR | taglia 7A
+- Codice 1444490 | MAGLIA ML N BRILL FILI ARG PIAZZA ITALIA 7/8A 7/8A | 3,00 EUR | 7/8A
+- Codice 1444487 | SCARPE GINN RS DIS N GRI ARTENGO NR 34 NR 34 | 8,00 EUR | NR 34
+- Codice 1444488 | SCARPE GINN DIADORA B LOGO FUX brill lacci rs vell 31 31 | 9,00 EUR | 31
+
+REGOLE DI ESTRAZIONE
+- Codice da tenere: solo il numero di 7 cifre (es. 1444496).
+- DA IGNORARE: la riga "A2954/..." e le cifre numeriche del codice a barre
+  (es. 4295414444...): sono un prefisso fisso, non servono.
+- La descrizione va espansa usando il dizionario delle abbreviazioni qui sotto.
+  Se un'abbreviazione non e' nel dizionario, l'app prova a intuirla dal contesto.
+- Il testo finale e' del tipo:
+  "Felpa zip con cappuccio Okaidi, rosa, 8 anni - 4,00 EUR - cod. 1444496"
+
+DIZIONARIO ABBREVIAZIONI (forniti da Elisa, vale anche per plurali e femminili)
+Colori:
+- gri = grigio / grigia / grigi / grigie
+- g = giallo / gialla / gialli / gialle
+- ve = verde / verdi
+- fux = fucsia / fucsie
+- b = bianco / bianca / bianchi / bianche
+- n = nero / nera / neri / nere
+- cel = celeste / celesti
+- marr = marrone / marroni
+- azz = azzurro / azzurra / azzurri / azzurre
+- rs = rosa
+- rss = rosso / rossa / rossi / rosse
+Capi e dettagli:
+- mm = mezza manica
+- ml = manica lunga
+- canott = canottiera
+- Ben = Benetton
+- capp = cappuccio
+- giubb = giubbotto
+Altre sigle viste sui cartellini, DA CONFERMARE con Elisa (solo ipotesi):
+- NR = numero (scarpe), GINN = ginnastica (scarpe), FELP = felpata,
+  MARGH = margherite, ARG = argento, BRILL = brillantini/brillante, DIS = disegno,
+  BOTT = bottoni, vell = velluto, IDO = marchio, 8A / 7A = anni (taglia)
+  NB: "n" da solo e' nero, ma "NR" e' numero: non confonderli.
+Elisa puo' aggiungere nuove abbreviazioni nel tempo: il dizionario deve essere
+facile da modificare (es. un semplice elenco "sigla = significato").
+
+FLUSSO D'USO
+1. Elisa scatta le foto come fa gia' ora
+2. Le passa all'app (selezione o tasto "Condividi" di Android)
+3. L'app raddrizza ogni foto
+4. L'app legge il cartellino e compone il testo
+5. Per ogni foto Elisa usa "Condividi" verso WhatsApp: foto e testo pronti
+6. L'INVIO sullo stato lo preme SEMPRE Elisa, dentro l'app ufficiale
+
+VINCOLO CRITICO - SICUREZZA ACCOUNT
+Vietato pubblicare in automatico su WhatsApp o Facebook con script, servizi di
+accessibilita' o API non ufficiali: rischio ban per violazione policy anti-bot.
+Unica interazione ammessa: Share Intent standard di Android, con invio manuale.
+
+REQUISITI TECNICI DA VALUTARE
+- Soluzione piu' semplice possibile: app nativa Android, Tasker o web-app/PWA?
+- Gestione di lotti grandi (40-50 foto): ridurre al minimo i passaggi e il
+  continuo avanti e indietro tra app e WhatsApp
+- Output per ogni foto: immagine raddrizzata + testo associato
+
+DOMANDE APERTE PER IL CLAUDE SUL PC
+- OCR piu' affidabile su etichette Zebra termiche (testo piccolo, a volte sbiadito)
+- Come minimizzare i tocchi nella condivisione multipla di 40-50 foto
+- App nativa o web-app/PWA per il caso d'uso di una persona poco esperta
