@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/btnScegli"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1. Scegli foto" />
+
+        <ImageView
+            android:id="@+id/anteprima"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:layout_marginTop="8dp"
+            android:background="#EEEEEE"
+            android:scaleType="fitCenter" />
+
+        <EditText
+            android:id="@+id/testo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="top"
+            android:hint="Testo da mettere come didascalia"
+            android:minLines="3"
+            android:text="Maglione donna taglia M\nCotone 100%\n€ 15" />
+
+        <Button
+            android:id="@+id/btnMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="2A. Condividi (menu di Android)" />
+
+        <Button
+            android:id="@+id/btnBusiness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2B. Direttamente a WhatsApp Business" />
+
+        <Button
+            android:id="@+id/btnWhatsapp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2C. Direttamente a WhatsApp" />
+
+        <Button
+            android:id="@+id/btnCopia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Piano B: copia testo negli appunti" />
+
+        <TextView
+            android:id="@+id/stato"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Nessuna foto scelta" />
+    </LinearLayout>
+</ScrollView>
